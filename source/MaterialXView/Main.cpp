@@ -9,6 +9,9 @@ NANOGUI_FORCE_DISCRETE_GPU();
 const std::string options = 
 " Options: \n"
 "    --material [FILENAME]          Specify the filename of the MTLX document to be displayed in the viewer\n"
+"    --bakeWidth [INTEGER]          Specify the width of the image in pixels (defaults to computed max resolution)\n"
+"    --bakeHeight [INTEGER]         Specify the height of the image in pixels (defaults to computed max resolution)\n"
+"    --bakeFiletype [STRING]        Specify the filename to which the output file should be written (defaults to TIF)\n"
 "    --mesh [FILENAME]              Specify the filename of the OBJ mesh to be displayed in the viewer\n"
 "    --meshRotation [VECTOR3]       Specify the rotation of the displayed mesh as three comma-separated floats, representing rotations in degrees about the X, Y, and Z axes (defaults to 0,0,0)\n"
 "    --meshScale [FLOAT]            Specify the uniform scale of the displayed mesh\n"
@@ -88,7 +91,11 @@ int main(int argc, char* const argv[])
     float cameraZoom(DEFAULT_CAMERA_ZOOM);
     mx::HwSpecularEnvironmentMethod specularEnvironmentMethod = mx::SPECULAR_ENVIRONMENT_FIS;
     int envSampleCount = DEFAULT_ENV_SAMPLE_COUNT;
-    float lightRotation = 0.0f;
+    float lightRotation = 0.0f;       
+    int bakeWidth = -1;
+    int bakeHeight = -1;
+    std::string bakeFormat;
+    std::string bakeFilename;
     DocumentModifiers modifiers;
     int screenWidth = 1280;
     int screenHeight = 960;
@@ -107,6 +114,23 @@ int main(int argc, char* const argv[])
         if (token == "--material")
         {
             materialFilename = nextToken;
+        }
+        else if (token == "--bakeFormat")
+        {
+            std::string bakeFormat;
+            parseToken(nextToken, "string", bakeFormat);
+        }
+        else if (token == "--bakeWidth")
+        {
+            parseToken(nextToken, "integer", bakeWidth);
+        }
+        else if (token == "--bakeHeight")
+        {
+            parseToken(nextToken, "integer", bakeHeight);
+        }
+        else if (token == "--bakeFilename")
+        {
+            parseToken(nextToken, "string", bakeFilename);
         }
         else if (token == "--mesh")
         {
@@ -252,7 +276,10 @@ int main(int argc, char* const argv[])
                                             screenWidth,
                                             screenHeight,
                                             screenColor,
-                                            multiSampleCount);
+                                            multiSampleCount,
+                                            bakeWidth,
+                                            bakeHeight,
+                                            bakeFormat);
         viewer->setMeshRotation(meshRotation);
         viewer->setMeshScale(meshScale);
         viewer->setCameraPosition(cameraPosition);

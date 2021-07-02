@@ -36,9 +36,9 @@ using BakedDocumentVec = std::vector<std::pair<std::string, DocumentPtr>>;
 class MX_RENDERGLSL_API TextureBaker : public GlslRenderer
 {
   public:
-    static TextureBakerPtr create(unsigned int width = 1024, unsigned int height = 1024, Image::BaseType baseType = Image::BaseType::UINT8)
+    static TextureBakerPtr create(unsigned int width = 1024, unsigned int height = 1024, Image::BaseType baseType = Image::BaseType::UINT8, const std::string &extension = ImageLoader::TIF_EXTENSION)
     {
-        return TextureBakerPtr(new TextureBaker(width, height, baseType));
+        return TextureBakerPtr(new TextureBaker(width, height, baseType, extension));
     }
 
     /// Set the file extension for baked textures.
@@ -210,7 +210,7 @@ class MX_RENDERGLSL_API TextureBaker : public GlslRenderer
     using BakedConstantMap = std::unordered_map<OutputPtr, BakedConstant>;
 
   protected:
-    TextureBaker(unsigned int width, unsigned int height, Image::BaseType baseType);
+    TextureBaker(unsigned int width, unsigned int height, Image::BaseType baseType, const std::string &extension);
 
     // Generate a texture filename for the given graph output.
     FilePath generateTextureFilename(OutputPtr output, const string& srName, const string& udim);

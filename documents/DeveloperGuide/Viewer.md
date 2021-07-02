@@ -27,6 +27,9 @@ The MaterialX Viewer leverages shader generation to build GLSL shaders from Mate
 ## Building The MaterialX Viewer
 Select the `MATERIALX_BUILD_VIEWER` option in CMake to build the MaterialX Viewer.  Installation will copy the **MaterialXView** executable to a `/bin` directory within the selected install folder.
 
+## Building The MaterialX Baker
+Select the `MATERIALX_BUILD_BAKER` option in CMake to build the MaterialX Baker.  Installation will copy the **MaterialXBaker** executable to a `/bin` directory within the selected install folder.
+
 ### Summary of Viewer Options
 
 1.  **Load Mesh**: Load a new geometry in the OBJ format.
