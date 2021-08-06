@@ -22,15 +22,24 @@
       <input name="scale" type="float" value="1.0" />
       <input name="space" type="string" value="tangent" />
     </normalmap>
-    <separate3 name="separate_orm" type="multioutput">
+    <extract name="extract_occlusion" type="float">
       <input name="in" type="color3" nodename="image_orm" />
-    </separate3>
+      <input name="index" type="integer" value="0" />
+    </extract>
+    <extract name="extract_roughness" type="float">
+      <input name="in" type="color3" nodename="image_orm" />
+      <input name="index" type="integer" value="1" />
+    </extract>
+    <extract name="extract_metallic" type="float">
+      <input name="in" type="color3" nodename="image_orm" />
+      <input name="index" type="integer" value="2" />
+    </extract>
     <output name="out_basecolor" type="color3" nodename="image_basecolor" />
     <output name="out_emission" type="color3" nodename="image_emission" />
     <output name="out_normal" type="vector3" nodename="normalmap" />
-    <output name="out_occlusion" type="float" nodename="separate_orm" output="outr" />
-    <output name="out_metallic" type="float" nodename="separate_orm" output="outg" />
-    <output name="out_roughness" type="float" nodename="separate_orm" output="outb" />
+    <output name="out_occlusion" type="float" nodename="extract_occlusion" />
+    <output name="out_roughness" type="float" nodename="extract_roughness" />
+    <output name="out_metallic" type="float" nodename="extract_metallic" />
   </nodegraph>
   <gltf_pbr name="SR_default" type="surfaceshader">
     <input name="base_color" type="color3" nodegraph="NG_boombox" output="out_basecolor" />
