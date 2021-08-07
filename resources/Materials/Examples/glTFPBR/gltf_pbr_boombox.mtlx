@@ -9,11 +9,11 @@
       <input name="file" type="filename" value="BoomBox_emissive.png" colorspace="srgb_texture" />
       <input name="uvtiling" type="vector2" value="1.0, 1.0" />
     </tiledimage>
-    <tiledimage name="image_normal" type="color3">
+    <tiledimage name="image_normal" type="vector3">
       <input name="file" type="filename" value="BoomBox_normal.png" />
       <input name="uvtiling" type="vector2" value="1.0, 1.0" />
     </tiledimage>
-    <tiledimage name="image_orm" type="color3">
+    <tiledimage name="image_orm" type="vector3">
       <input name="file" type="filename" value="BoomBox_occlusionRoughnessMetallic.png" />
       <input name="uvtiling" type="vector2" value="1.0, 1.0" />
     </tiledimage>
@@ -23,15 +23,15 @@
       <input name="space" type="string" value="tangent" />
     </normalmap>
     <extract name="extract_occlusion" type="float">
-      <input name="in" type="color3" nodename="image_orm" />
+      <input name="in" type="vector3" nodename="image_orm" />
       <input name="index" type="integer" value="0" />
     </extract>
     <extract name="extract_roughness" type="float">
-      <input name="in" type="color3" nodename="image_orm" />
+      <input name="in" type="vector3" nodename="image_orm" />
       <input name="index" type="integer" value="1" />
     </extract>
     <extract name="extract_metallic" type="float">
-      <input name="in" type="color3" nodename="image_orm" />
+      <input name="in" type="vector3" nodename="image_orm" />
       <input name="index" type="integer" value="2" />
     </extract>
     <output name="out_basecolor" type="color3" nodename="image_basecolor" />
