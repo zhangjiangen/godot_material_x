@@ -257,7 +257,7 @@ int main(int argc, char *const argv[])
     else
     {
       std::cout << "Unrecognized command-line option: " << token << std::endl;
-      std::cout << "Launch the viewer with '--help' for a complete list of "
+      std::cout << "Launch the baker with '--help' for a complete list of "
                    "supported options."
                 << std::endl;
       continue;
