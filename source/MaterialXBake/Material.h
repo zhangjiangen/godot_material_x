@@ -148,10 +148,6 @@ class Material
     mx::ImagePtr bindImage(const mx::FilePath& filePath, const std::string& uniformName, mx::ImageHandlerPtr imageHandler,
                            const mx::ImageSamplingProperties& samplingProperties);
 
-    /// Bind lights to shader.
-    void bindLights(const mx::GenContext& genContext, mx::LightHandlerPtr lightHandler, mx::ImageHandlerPtr imageHandler,
-                    const LightingState& lightingState, const ShadowState& shadowState);
-
     /// Bind units.
     void bindUnits(mx::UnitConverterRegistryPtr& registry, const mx::GenContext& context);
 
