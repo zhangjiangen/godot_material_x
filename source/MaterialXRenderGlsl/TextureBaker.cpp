@@ -57,8 +57,8 @@ string getValueStringFromColor(const Color4& color, const string& type)
 
 } // anonymous namespace
 
-TextureBaker::TextureBaker(unsigned int width, unsigned int height, Image::BaseType baseType, const std::string &extension) :
-    GlslRenderer(width, height, baseType, extension),
+TextureBaker::TextureBaker(unsigned int width, unsigned int height, Image::BaseType baseType) :
+    GlslRenderer(width, height, baseType),
     _distanceUnit("meter"),
     _averageImages(false),
     _optimizeConstants(true),
@@ -66,8 +66,7 @@ TextureBaker::TextureBaker(unsigned int width, unsigned int height, Image::BaseT
     _bakedGeomInfoName("GI_baked"),
     _outputStream(&std::cout),
     _hashImageNames(false),
-    _generator(GlslShaderGenerator::create()),
-    _extension(extension)
+    _generator(GlslShaderGenerator::create())
 {
     if (baseType == Image::BaseType::UINT8)
     {
@@ -86,25 +85,6 @@ TextureBaker::TextureBaker(unsigned int width, unsigned int height, Image::BaseT
         _extension = ImageLoader::HDR_EXTENSION;
 #endif
         _colorSpace = LIN_REC709;
-    }
-    if (extension == ImageLoader::PNG_EXTENSION) {
-        _colorSpace = SRGB_TEXTURE;
-    }
-    else if (extension == ImageLoader::TIFF_EXTENSION || extension == ImageLoader::TIF_EXTENSION) {
-#if !defined(MATERIALX_BUILD_OIIO)
-        _extension = ImageLoader::PNG_EXTENSION;
-#endif
-        _colorSpace = SRGB_TEXTURE;
-    }
-    else if (extension == ImageLoader::EXR_EXTENSION) {
-#if !defined(MATERIALX_BUILD_OIIO)
-        _extension = ImageLoader::HDR_EXTENSION;
-#endif
-        _colorSpace = LIN_REC709;
-    }
-    else if(extension == ImageLoader::HDR_EXTENSION) {
-        _colorSpace = LIN_REC709;
-
     }
 
     // Initialize our base renderer.

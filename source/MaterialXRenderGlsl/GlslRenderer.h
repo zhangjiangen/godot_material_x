@@ -43,7 +43,7 @@ class MX_RENDERGLSL_API GlslRenderer : public ShaderRenderer
 {
   public:
     /// Create a GLSL renderer instance
-    static GlslRendererPtr create(unsigned int width = 512, unsigned int height = 512, Image::BaseType baseType = Image::BaseType::UINT8, const std::string& extension = ImageLoader::TIF_EXTENSION);
+    static GlslRendererPtr create(unsigned int width = 512, unsigned int height = 512, Image::BaseType baseType = Image::BaseType::UINT8);
 
     /// Destructor
     virtual ~GlslRenderer() { };
@@ -109,7 +109,7 @@ class MX_RENDERGLSL_API GlslRenderer : public ShaderRenderer
     /// @}
 
   protected:
-    GlslRenderer(unsigned int width, unsigned int height, Image::BaseType baseType, const std::string &extension);
+    GlslRenderer(unsigned int width, unsigned int height, Image::BaseType baseType);
 
     virtual void updateViewInformation();
     virtual void updateWorldInformation();
@@ -128,8 +128,7 @@ class MX_RENDERGLSL_API GlslRenderer : public ShaderRenderer
 
     SimpleWindowPtr _window;
     GLContextPtr _context;
-    Color4 _clearColor; 
-    std::string _extension;
+    Color4 _clearColor;
 };
 
 } // namespace MaterialX

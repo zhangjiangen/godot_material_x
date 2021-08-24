@@ -180,19 +180,13 @@ Viewer::Viewer(const std::string& materialFilename,
                int screenWidth,
                int screenHeight,
                const mx::Color3& screenColor,
-               int multiSampleCount,
-               int bakeWidth,
-               int bakeHeight,
-               const std::string& bakeFormat) :
+               int multiSampleCount) :
     ng::Screen(ng::Vector2i(screenWidth, screenHeight), "MaterialXView",
         true, false,
         8, 8, 24, 8,
         multiSampleCount),
     _window(nullptr),
     _materialFilename(materialFilename),
-    _bakeWidth(bakeWidth),
-    _bakeHeight(bakeHeight),
-    _bakeFormat(bakeFormat),
     _meshFilename(meshFilename),
     _envRadianceFilename(envRadianceFilename),
     _searchPath(searchPath),
@@ -2014,7 +2008,6 @@ void Viewer::bakeTextures()
 
         // Construct a texture baker.
         mx::Image::BaseType baseType = _bakeHdr ? mx::Image::BaseType::FLOAT : mx::Image::BaseType::UINT8;
-
         mx::TextureBakerPtr baker = mx::TextureBaker::create(bakeWidth, bakeHeight, baseType);
         baker->setupUnitSystem(_stdLib);
         baker->setDistanceUnit(_genContext.getOptions().targetDistanceUnit);

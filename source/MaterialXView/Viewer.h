@@ -29,10 +29,7 @@ class Viewer : public ng::Screen
            int screenWidth,
            int screenHeight,
            const mx::Color3& screenColor,
-           int multiSampleCount,
-           int bakeWidth,
-           int bakeHeight,
-           const std::string &bakeFormat);
+           int multiSampleCount);
     ~Viewer() { }
 
     // Initialize the viewer for rendering.
@@ -259,10 +256,6 @@ class Viewer : public ng::Screen
     mx::Vector3 _meshTranslation;
     mx::Vector3 _meshRotation;
     float _meshScale;
-    
-    int _bakeWidth;
-    int _bakeHeight;
-    std::string _bakeFormat;
 
     mx::Vector3 _cameraPosition;
     mx::Vector3 _cameraTarget;
