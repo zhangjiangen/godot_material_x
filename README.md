@@ -19,7 +19,7 @@ Here is a command line example starting from a fresh checkout:
 ```bash
 mkdir build
 cd build
-cmake -DMATERIALX_BUILD_VIEWER=ON -DMATERIALX_BUILD_BAKER=ON .. -G"Unix Makefiles"
+cmake -DMATERIALX_BUILD_BAKER=ON .. -G"Unix Makefiles"
 make install -j8
 ```
 
