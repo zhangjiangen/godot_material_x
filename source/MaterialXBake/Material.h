@@ -135,31 +135,6 @@ class Material
         return _hasTransparency;
     }
 
-    /// Bind shader
-    void bindShader();
-
-    /// Bind all images for this material.
-    void bindImages(mx::ImageHandlerPtr imageHandler, const mx::FileSearchPath& searchPath, bool enableMipmaps = true);
-
-    /// Unbbind all images for this material.
-    void unbindImages(mx::ImageHandlerPtr imageHandler);
-
-    /// Bind a single image.
-    mx::ImagePtr bindImage(const mx::FilePath& filePath, const std::string& uniformName, mx::ImageHandlerPtr imageHandler,
-                           const mx::ImageSamplingProperties& samplingProperties);
-
-    /// Bind units.
-    void bindUnits(mx::UnitConverterRegistryPtr& registry, const mx::GenContext& context);
-
-    /// Return the block of public uniforms for this material.
-    mx::VariableBlock* getPublicUniforms() const;
-
-    /// Find a public uniform from its MaterialX path.
-    mx::ShaderPort* findUniform(const std::string& path) const;
-
-    /// Modify the value of the uniform with the given path.
-    void modifyUniform(const std::string& path, mx::ConstValuePtr value, std::string valueString = mx::EMPTY_STRING);
-
   protected:
     void clearShader();
     void updateUniformsList();
