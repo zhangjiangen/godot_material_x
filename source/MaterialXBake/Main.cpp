@@ -28,7 +28,7 @@ namespace mx = MaterialX;
 const std::string options =
     " Options: \n"
     "    --material [FILENAME]          Specify the filename of the MTLX "
-    "document to be displayed in the viewer\n"
+    "document to be baked to a filename\n"
     "(defaults to png)\n"
     "    --path [FILEPATH]              Specify an additional absolute search "
     "path location (e.g. '/projects/MaterialX').  This path will be queried "
