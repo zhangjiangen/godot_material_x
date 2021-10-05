@@ -553,14 +553,15 @@ int main(int argc, char *const argv[])
     return 1;
   }
   mx::FilePath fileName = bakeFilename;
-  if (!fileName.isEmpty())
+  if (fileName.isEmpty())
   {
-    if (fileName.getExtension() != mx::MTLX_EXTENSION)
-    {
-      fileName.addExtension(mx::MTLX_EXTENSION);
-    }
-    bakeFilename = fileName;
+      fileName = materialFilename.getBaseName();
   }
+  if (fileName.getExtension() != mx::MTLX_EXTENSION)
+  {
+      fileName.addExtension(mx::MTLX_EXTENSION);
+  }
+  bakeFilename = fileName;
 
   // Bake all materials in the active document.
   try
