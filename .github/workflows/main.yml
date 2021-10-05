@@ -169,10 +169,8 @@ jobs:
          node-version: '12'
 
     - name: CMake Generate
-      run: |
-        mkdir build
-        cd build
-        cmake -DMATERIALX_BUILD_PYTHON=ON -DMATERIALX_BUILD_VIEWER=ON -DMATERIALX_TEST_RENDER=OFF -DMATERIALX_WARNINGS_AS_ERRORS=ON ${{matrix.cmake_config}} ..
+      run: cmake -DMATERIALX_BUILD_PYTHON=ON -DMATERIALX_BUILD_VIEWER=ON -DMATERIALX_BUILD_BAKER=ON -DMATERIALX_TEST_RENDER=OFF -DMATERIALX_WARNINGS_AS_ERRORS=ON ${{matrix.cmake_config}} ..
+      working-directory: build
 
     - name: CMake Build
       run: cmake --build . --target install --config Release --parallel 2

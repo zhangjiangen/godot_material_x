@@ -43,6 +43,10 @@ Additional options for the generation of MaterialX Python include the following:
 
 Select the `MATERIALX_BUILD_VIEWER` option to build the MaterialX Viewer.  Installation will copy the **MaterialXView** executable to a `bin/` directory within the selected install folder.
 
+### Building The MaterialX Baker
+
+Select the `MATERIALX_BUILD_BAKER` option to build the MaterialX Baker.  Installation will copy the **MaterialXBake** executable to a `bin/` directory within the selected install folder.
+
 ### Building API Documentation
 
 To generate HTML documentation for the MaterialX C++ API, make sure a version of [Doxygen](https://www.doxygen.org/) is on your path, and select the advanced option `MATERIALX_BUILD_DOCS` in CMake.  This option will add a target named `MaterialXDocs` to your project, which can be built as an independent step from your development environment.
