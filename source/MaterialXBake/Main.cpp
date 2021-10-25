@@ -11,9 +11,6 @@
 #include <MaterialXGenShader/DefaultColorManagementSystem.h>
 #include <MaterialXGenShader/ShaderTranslator.h>
 
-#include <MaterialXGenMdl/MdlShaderGenerator.h>
-#include <MaterialXGenOsl/OslShaderGenerator.h>
-
 #include <MaterialXFormat/Environ.h>
 #include <MaterialXFormat/Util.h>
 
@@ -21,7 +18,7 @@
 
 #include <iostream>
 
-#include "MaterialXBake/Material.h"
+#include "Material.h"
 
 namespace mx = MaterialX;
 

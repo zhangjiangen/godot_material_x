@@ -1,4 +1,4 @@
-#include <MaterialXView/Material.h>
+#include <MaterialXBake/Material.h>
 
 #include <MaterialXRenderGlsl/External/GLew/glew.h>
 #include <MaterialXRenderGlsl/GLTextureHandler.h>
