@@ -248,7 +248,7 @@ int main(int argc, char *const argv[])
     }
     else if (token == "--help")
     {
-      std::cout << " MaterialXView version " << mx::getVersionString()
+      std::cout << " MaterialXBake version " << mx::getVersionString()
                 << std::endl;
       std::cout << options << std::endl;
       return 0;
