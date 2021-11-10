@@ -46,6 +46,7 @@ set(MATERIALX_INSTALL_STDLIB_PATH "libraries" CACHE STRING "Install path for mtl
 
 # Helpers for OSL validation
 set(MATERIALX_TESTOSLC_EXECUTABLE "" CACHE FILEPATH "Full path to the oslc binary.")
+set(MATERIALX_TESTRENDER_EXECUTABLE "" CACHE FILEPATH "Full path to the testrender binary.")
 set(MATERIALX_OSL_INCLUDE_PATH "" CACHE PATH "Full path to osl include paths. e.g. location of stdosl.h")
 
 # Helpers for MDL validation
@@ -97,6 +98,14 @@ if(MATERIALX_BUILD_OIIO)
 endif()
 if(MATERIALX_TEST_RENDER)
     add_definitions(-DMATERIALX_TEST_RENDER)
+endif()
+
+if (MATERIALX_BUILD_GEN_MDL)
+    add_definitions(-DMATERIALX_MDLC_EXECUTABLE=\"${MATERIALX_MDLC_EXECUTABLE}\")
+    add_definitions(-DMATERIALX_MDL_RENDER_EXECUTABLE=\"${MATERIALX_MDL_RENDER_EXECUTABLE}\")
+    add_definitions(-DMATERIALX_MDL_RENDER_ARGUMENTS=\"${MATERIALX_MDL_RENDER_ARGUMENTS}\")
+    add_definitions(-DMATERIALX_MDL_MODULE_PATHS=\"${MATERIALX_MDL_MODULE_PATHS}\")
+    add_definitions(-DMATERIALX_INSTALL_MDL_MODULE_PATH=\"${MATERIALX_INSTALL_MDL_MODULE_PATH}\")
 endif()
 
 # Adjust the default installation path
@@ -158,6 +167,14 @@ if(MATERIALX_BUILD_GEN_GLSL OR MATERIALX_BUILD_GEN_OSL OR MATERIALX_BUILD_GEN_MD
         add_definitions(-DMATERIALX_BUILD_GEN_GLSL)
         add_subdirectory(source/MaterialXGenGlsl)
     endif()
+    if (MATERIALX_BUILD_GEN_OSL)
+        add_definitions(-DMATERIALX_BUILD_GEN_OSL)
+        add_subdirectory(source/MaterialXGenOsl)
+    endif()
+    if (MATERIALX_BUILD_GEN_MDL)
+        add_definitions(-DMATERIALX_BUILD_GEN_MDL)
+        add_subdirectory(source/MaterialXGenMdl)
+    endif()
     # TODO: Add only those libraries that are required for enabled generators
     add_subdirectory(libraries)
 endif()
@@ -165,12 +182,27 @@ endif()
 # Add rendering and viewer subdirectories
 if(MATERIALX_BUILD_RENDER)
     add_subdirectory(source/MaterialXRender)
+    add_subdirectory(source/MaterialXRenderOsl)
     add_subdirectory(source/MaterialXRenderHw)
     add_subdirectory(source/MaterialXRenderGlsl)
     add_subdirectory(resources)
+    if(MATERIALX_BUILD_VIEWER)
+        add_subdirectory(source/MaterialXView)
+    endif()
     if(MATERIALX_BUILD_BAKER)
         add_subdirectory(source/MaterialXBake)
     endif()
+endif()
+
+# Add test subdirectory
+if(MATERIALX_BUILD_TESTS)
+    add_subdirectory(source/MaterialXTest)
+endif()
+
+# Add Python subdirectories
+if(MATERIALX_BUILD_PYTHON)
+    add_subdirectory(source/PyMaterialX)
+    add_subdirectory(python)
 endif()
 
 if(MATERIALX_BUILD_DOCS)
@@ -178,8 +210,12 @@ if(MATERIALX_BUILD_DOCS)
 endif()
 
 if(${CMAKE_VERSION} VERSION_GREATER "3.6.2")
-    if(MATERIALX_BUILD_BAKER)
+    if(MATERIALX_BUILD_VIEWER)
+        set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT MaterialXView)
+    elseif(MATERIALX_BUILD_BAKER)
         set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT MaterialXBake)
+    else()
+        set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT MaterialXTest)
     endif()
 endif()
 
