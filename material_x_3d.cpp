@@ -63,13 +63,11 @@ void applyModifiers(mx::DocumentPtr doc, const DocumentModifiers &modifiers) {
 }
 
 RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error *r_error, bool p_use_sub_threads, float *r_progress, CacheMode p_cache_mode) {
-	mx::FilePath materialFilename =
-			"resources/Materials/Examples/StandardSurface/"
-			"standard_surface_default.mtlx";
-	mx::FileSearchPath searchPath = getDefaultSearchPath();
+	mx::FilePath materialFilename = ProjectSettings::get_singleton()->globalize_path(p_path).utf8().get_data();
+	mx::FileSearchPath searchPath;
+    searchPath.append(ProjectSettings::get_singleton()->globalize_path("res://").utf8().get_data());
 	mx::FilePathVec libraryFolders = { 
-        "libraries", 
-        ProjectSettings::get_singleton()->globalize_path("res://libraries").utf8().get_data()
+        "libraries"
     };
 
 	int bakeWidth = -1;
@@ -83,9 +81,8 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 	mx::ImageHandlerPtr imageHandler =
 			mx::GLTextureHandler::create(mx::StbImageLoader::create());
 
-	materialFilename = p_path.utf8().get_data();
-	// Defaults to PNG
     if (bakeFormat == std::string("EXR") || bakeFormat == std::string("exr")) {
+        bakeHdr = true;
 #if MATERIALX_BUILD_OIIO
 		imageHandler->addLoader(mx::OiioImageLoader::create());
 #else
@@ -93,42 +90,26 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 		return RES();
 #endif
 	}
-	}
 
-	// const std::string options =
-	// 		" Options: \n"
-	// 		"    --material [FILENAME]          Specify the filename of the MTLX "
-	// 		"document to be baked to a filename\n"
-	// 		"(defaults to png)\n"
-	// 		"    --path [FILEPATH]              Specify an additional absolute search "
-	// 		"path location (e.g. '/projects/MaterialX').  This path will be queried "
-	// 		"when locating standard data libraries, XInclude references, and "
-	// 		"referenced images.\n"
-	// 		"    --library [FILEPATH]           Specify an additional relative path to "
-	// 		"a custom data library folder (e.g. 'libraries/custom').  MaterialX files "
-	// 		"at the root of this folder will be included in all content documents.\n"
+	libraryFolders.push_back(ProjectSettings::get_singleton()->globalize_path("res://libraries").utf8().get_data());
+	libraryFolders.push_back(ProjectSettings::get_singleton()->globalize_path(p_original_path.get_base_dir()).utf8().get_data());
+
+    bakeFilename = p_original_path.get_basename().utf8().get_data();
+
 	// 		"    --bakeWidth [INTEGER]          Specify the target width for texture baking (defaults to maximum image width of the source document)\n"
 	// 		"    --bakeHeight [INTEGER]         Specify the target height for texture baking (defaults to maximum image height of the source document)\n"
-	// 		"    --bakeFilename [STRING]        Specify the output document filename for texture baking\n"
 	// 		"    --remap [TOKEN1:TOKEN2]        Specify the remapping from one token "
 	// 		"to another when MaterialX document is loaded\n"
 	// 		"    --skip [NAME]                  Specify to skip elements matching the "
 	// 		"given name attribute\n"
 	// 		"    --terminator [STRING]          Specify to enforce the given "
 	// 		"terminator string for file prefixes\n"
-	// 		"    --help                         Display the complete list of "
-	// 		"command-line options\n";
-	//
 	//     if (token == "--path") {
 	//         searchPath.append(mx::FileSearchPath(nextToken));
-	//     } else if (token == "--library") {
-	//         libraryFolders.push_back(nextToken);
 	//     } else if (token == "--bakeWidth") {
 	//         parseToken(nextToken, "integer", bakeWidth);
 	//     } else if (token == "--bakeHeight") {
 	//         parseToken(nextToken, "integer", bakeHeight);
-	//     } else if (token == "--bakeFilename") {
-	//         parseToken(nextToken, "string", bakeFilename);
 	//     } else if (token == "--remap") {
 	//         mx::StringVec vec = mx::splitString(nextToken, ":");
 	//         if (vec.size() == 2) {
@@ -141,6 +122,7 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 	//         modifiers.skipElements.insert(nextToken);
 	//     } else if (token == "--terminator") {
 	//         modifiers.filePrefixTerminator = nextToken;
+    //     }
 
 	imageHandler->setSearchPath(searchPath);
 
@@ -305,6 +287,10 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 
     Ref<StandardMaterial3D> mat;
     mat.instantiate();
+
+	if (r_error) {
+		*r_error = OK;
+	}
 
 	return mat;
 }
