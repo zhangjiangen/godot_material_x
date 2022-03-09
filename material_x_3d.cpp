@@ -1,5 +1,7 @@
 #include "material_x_3d.h"
 
+#include "core/config/project_settings.h"
+
 mx::FileSearchPath getDefaultSearchPath() {
 	mx::FilePath modulePath = mx::FilePath::getModulePath();
 	mx::FilePath installRootPath = modulePath.getParentPath();
@@ -65,7 +67,10 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 			"resources/Materials/Examples/StandardSurface/"
 			"standard_surface_default.mtlx";
 	mx::FileSearchPath searchPath = getDefaultSearchPath();
-	mx::FilePathVec libraryFolders = { "libraries" };
+	mx::FilePathVec libraryFolders = { 
+        "libraries", 
+        ProjectSettings::get_singleton()->globalize_path("res://libraries").utf8().get_data()
+    };
 
 	int bakeWidth = -1;
 	int bakeHeight = -1;
@@ -80,22 +85,14 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 
 	materialFilename = p_path.utf8().get_data();
 	// Defaults to PNG
-	if (bakeFormat == std::string("HDR") || bakeFormat == std::string("hdr")) {
-		bakeHdr = true;
-	} else if (bakeFormat == std::string("EXR") || bakeFormat == std::string("exr")) {
+    if (bakeFormat == std::string("EXR") || bakeFormat == std::string("exr")) {
 #if MATERIALX_BUILD_OIIO
 		imageHandler->addLoader(mx::OiioImageLoader::create());
 #else
 		std::cout << "OpenEXR is not supported\n";
 		return RES();
 #endif
-	} else if (bakeFormat == std::string("TIFF") || bakeFormat == std::string("TIF") || bakeFormat == std::string("tif") || bakeFormat == std::string("tif")) {
-#if MATERIALX_BUILD_OIIO
-		imageHandler->addLoader(mx::OiioImageLoader::create());
-#else
-		std::cout << "Tiff is not supported\n";
-		return RES();
-#endif
+	}
 	}
 
 	// const std::string options =
