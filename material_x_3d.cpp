@@ -104,9 +104,7 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 	// 		"given name attribute\n"
 	// 		"    --terminator [STRING]          Specify to enforce the given "
 	// 		"terminator string for file prefixes\n"
-	//     if (token == "--path") {
-	//         searchPath.append(mx::FileSearchPath(nextToken));
-	//     } else if (token == "--bakeWidth") {
+	//     if (token == "--bakeWidth") {
 	//         parseToken(nextToken, "integer", bakeWidth);
 	//     } else if (token == "--bakeHeight") {
 	//         parseToken(nextToken, "integer", bakeHeight);
