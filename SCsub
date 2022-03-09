@@ -1,0 +1,20 @@
+# SCsub
+
+Import('env')
+
+module_env = env.Clone()
+
+module_env.Prepend(CPPPATH=['#godot-modules-groups/MaterialX/thirdparty/MaterialX'])
+
+env_thirdparty = module_env.Clone()
+env_thirdparty.disable_warnings()
+# env_thirdparty.add_source_files(env.modules_sources, "thirdparty/MaterialX/MaterialXBake/*.cpp")
+env_thirdparty.add_source_files(env.modules_sources, "thirdparty/MaterialX/MaterialXCore/*.cpp")
+env_thirdparty.add_source_files(env.modules_sources, "thirdparty/MaterialX/MaterialXFormat/*.cpp")
+env_thirdparty.add_source_files(env.modules_sources, "thirdparty/MaterialX/MaterialXRender/*.cpp")
+env_thirdparty.add_source_files(env.modules_sources, "thirdparty/MaterialX/MaterialXGenGlsl/*.cpp")
+env_thirdparty.add_source_files(env.modules_sources, "thirdparty/MaterialX/MaterialXGenShader/*.cpp")
+env_thirdparty.add_source_files(env.modules_sources, "thirdparty/MaterialX/MaterialXRenderGlsl/*.cpp")
+env_thirdparty.add_source_files(env.modules_sources, "thirdparty/MaterialX/MaterialXRenderHw/*.cpp")
+
+module_env.add_source_files(env.modules_sources, "*.cpp")
