@@ -11,6 +11,7 @@ mx::FileSearchPath getDefaultSearchPath() {
 	mx::FileSearchPath searchPath;
 	searchPath.append(installRootPath);
 	searchPath.append(devRootPath);
+	searchPath.append(ProjectSettings::get_singleton()->globalize_path("res://").utf8().get_data());
 
 	return searchPath;
 }
@@ -64,10 +65,7 @@ void applyModifiers(mx::DocumentPtr doc, const DocumentModifiers &modifiers) {
 
 RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error *r_error, bool p_use_sub_threads, float *r_progress, CacheMode p_cache_mode) {
 	mx::FilePath materialFilename = ProjectSettings::get_singleton()->globalize_path(p_path).utf8().get_data();
-	mx::FileSearchPath searchPath;
-	String godot_resource_path = "res://";
-	String godot_global_path = ProjectSettings::get_singleton()->globalize_path(godot_resource_path);
-	searchPath.append(godot_global_path.utf8().get_data());
+	mx::FileSearchPath searchPath = getDefaultSearchPath();
 	mx::FilePathVec libraryFolders;
 
 	int bakeWidth = -1;
