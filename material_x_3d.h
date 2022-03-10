@@ -18,15 +18,15 @@
 
 #include <MaterialXFormat/Environ.h>
 #include <MaterialXFormat/Util.h>
-#include "material.h"
 
 #include <MaterialXCore/Util.h>
 
-#include <MaterialXGenGlsl/GlslShaderGenerator.h>
-#include <MaterialXGenShader/UnitSystem.h>
+#include <iostream>
+
 #include <MaterialXRenderGlsl/GlslProgram.h>
 
-#include <iostream>
+#include <MaterialXGenGlsl/GlslShaderGenerator.h>
+#include <MaterialXGenShader/UnitSystem.h>
 
 class MTLXLoader : public ResourceFormatLoader {
 public:
@@ -35,4 +35,15 @@ public:
 	virtual bool handles_type(const String &p_type) const;
 	virtual String get_resource_type(const String &p_path) const;
 	MTLXLoader() {}
+};
+
+namespace mx = MaterialX;
+
+using MaterialPtr = std::shared_ptr<class Material>;
+
+class DocumentModifiers {
+public:
+	mx::StringMap remapElements;
+	mx::StringSet skipElements;
+	std::string filePrefixTerminator;
 };

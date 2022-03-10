@@ -143,7 +143,6 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 	// Initialize search paths.
 	for (const mx::FilePath &path : searchPath) {
 		context.registerSourceCodeSearchPath(path / "libraries");
-		context.registerSourceCodeSearchPath(path / "stdlib");
 	}
 
 	std::vector<MaterialPtr> newMaterials;
