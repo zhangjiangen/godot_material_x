@@ -19,7 +19,13 @@ env_thirdparty.add_source_files(env.modules_sources, "thirdparty/MaterialX/src/M
 env_thirdparty.add_source_files(env.modules_sources, "thirdparty/MaterialX/src/MaterialXRender/*.cpp")
 env_thirdparty.add_source_files(env.modules_sources, "thirdparty/MaterialX/src/MaterialXRenderGlsl/External/GLew/*.cpp")
 env_thirdparty.add_source_files(env.modules_sources, "thirdparty/MaterialX/src/MaterialXRenderGlsl/*.cpp")
-env_thirdparty.add_source_files(env.modules_sources, "thirdparty/MaterialX/src/MaterialXRenderHw/*.cpp")
+env_thirdparty.add_source_files(env.modules_sources, "thirdparty/MaterialX/src/MaterialXRenderHw/WindowWrapper.cpp")
+if env["platform"] == "linuxbsd":
+    env_thirdparty.add_source_files(env.modules_sources, "thirdparty/MaterialX/src/MaterialXRenderHw/SimpleWindowLinux.cpp")
+elif env["platform"] == "macos":
+    env_thirdparty.add_source_files(env.modules_sources, "thirdparty/MaterialX/src/MaterialXRenderHw/SimpleWindowMac.cpp")
+elif env["platform"] == "windows":
+    env_thirdparty.add_source_files(env.modules_sources, "thirdparty/MaterialX/src/MaterialXRenderHw/SimpleWindowWindows.cpp")
 
 module_env.add_source_files(env.modules_sources, "*.cpp")
 
