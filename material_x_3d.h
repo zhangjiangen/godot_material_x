@@ -10,7 +10,6 @@
 #include <MaterialXRender/Harmonics.h>
 #include <MaterialXRender/OiioImageLoader.h>
 #include <MaterialXRender/StbImageLoader.h>
-#include <MaterialXRender/TinyObjLoader.h>
 #include <MaterialXRender/Util.h>
 
 #include <MaterialXGenShader/DefaultColorManagementSystem.h>
@@ -21,12 +20,11 @@
 
 #include <MaterialXCore/Util.h>
 
-#include <iostream>
-
 #include <MaterialXRenderGlsl/GlslProgram.h>
-
 #include <MaterialXGenGlsl/GlslShaderGenerator.h>
 #include <MaterialXGenShader/UnitSystem.h>
+
+#include <iostream>
 
 class MTLXLoader : public ResourceFormatLoader {
 public:
