@@ -63,6 +63,39 @@ void applyModifiers(mx::DocumentPtr doc, const DocumentModifiers &modifiers) {
 	}
 }
 
+Variant get_value_as_material_x_variant(mx::InputPtr p_input) {
+	mx::ValuePtr value = p_input->getValue();
+	if (value->getTypeString() == "float") {
+		return value->asA<float>();
+	} else if (value->getTypeString() == "integer") {
+		return value->asA<int>();
+	} else if (value->getTypeString() == "boolean") {
+		return value->asA<bool>();
+	} else if (value->getTypeString() == "color3") {
+		mx::Color3 color = value->asA<mx::Color3>();
+		return Color(color[0], color[1], color[2]);
+	} else if (value->getTypeString() == "color4") {
+		mx::Color4 color = value->asA<mx::Color4>();
+		return Color(color[0], color[1], color[2], color[3]);
+	} else if (value->getTypeString() == "vector2") {
+		mx::Vector2 vector_2 = value->asA<mx::Vector2>();
+		return Vector2(vector_2[0], vector_2[1]);
+	} else if (value->getTypeString() == "vector3") {
+		mx::Vector3 vector_3 = value->asA<mx::Vector3>();
+		return Vector3(vector_3[0], vector_3[1], vector_3[2]);
+	} else if (value->getTypeString() == "vector4") {
+		mx::Vector4 vector_4 = value->asA<mx::Vector4>();
+		return Color(vector_4[0], vector_4[1], vector_4[2], vector_4[3]);
+	} else if (value->getTypeString() == "matrix33") {
+		// Matrix33 m = value->asA<Matrix33>();
+		// TODO: fire 2022-03-11 add basis
+	} else if (value->getTypeString() == "matrix44") {
+		// Matrix44 m = value->asA<Matrix44>();
+		// TODO: fire 2022-03-11 add transform
+	}
+	return Variant();
+}
+
 RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error *r_error, bool p_use_sub_threads, float *r_progress, CacheMode p_cache_mode) {
 	mx::FilePath materialFilename = ProjectSettings::get_singleton()->globalize_path(p_path).utf8().get_data();
 	mx::FileSearchPath searchPath = getDefaultSearchPath();
@@ -269,7 +302,6 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 
 	std::vector<mx::TypedElementPtr> renderableMaterials;
 	findRenderableElements(doc, renderableMaterials);
-	ERR_FAIL_COND_V_MSG(renderableMaterials.size() != 1, RES(), "More than one material is unsupported.");
 	Ref<StandardMaterial3D> mat;
 	mat.instantiate();
 	for (size_t i = 0; i < renderableMaterials.size(); i++) {
@@ -305,37 +337,43 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 					String line = vformat("MaterialX attribute filepath %s", filepath);
 					print_line(vformat("MaterialX attribute name %s", String(input->getOutputString().c_str())));
 					print_line(line);
+					Ref<Texture2D> tex = ResourceLoader::load(filepath, "Texture2D");
+					if (input_name == "base_color") {
+						mat->set_texture(StandardMaterial3D::TextureParam::TEXTURE_ALBEDO, tex);
+					} else if (input_name == "metallic") {
+						mat->set_texture(StandardMaterial3D::TextureParam::TEXTURE_METALLIC, tex);
+					} else if (input_name == "roughness") {
+						mat->set_texture(StandardMaterial3D::TextureParam::TEXTURE_ROUGHNESS, tex);
+					}else if (input_name == "normal") {
+						mat->set_texture(StandardMaterial3D::TextureParam::TEXTURE_NORMAL, tex);
+					}
 					continue;
 				}
-				Variant v;
-				mx::ValuePtr value = input->getValue();
-				if (value->getTypeString() == "float") {
-					v = value->asA<float>();
-				} else if (value->getTypeString() == "integer") {
-					v = value->asA<int>();
-				} else if (value->getTypeString() == "boolean") {
-					v = value->asA<bool>();
-				} else if (value->getTypeString() == "color3") {
-					mx::Color3 color = value->asA<mx::Color3>();
-					v = Color(color[0], color[1], color[2]);
-				} else if (value->getTypeString() == "color4") {
-					mx::Color4 color = value->asA<mx::Color4>();
-					v = Color(color[0], color[1], color[2], color[3]);
-				} else if (value->getTypeString() == "vector2") {
-					mx::Vector2 vector_2 = value->asA<mx::Vector2>();
-					v = Vector2(vector_2[0], vector_2[1]);
-				} else if (value->getTypeString() == "vector3") {
-					mx::Vector3 vector_3 = value->asA<mx::Vector3>();
-					v = Vector3(vector_3[0], vector_3[1], vector_3[2]);
-				} else if (value->getTypeString() == "vector4") {
-					mx::Vector4 vector_4 = value->asA<mx::Vector4>();
-					v = Color(vector_4[0], vector_4[1], vector_4[2], vector_4[3]);
-				} else if (value->getTypeString() == "matrix33") {
-					// Matrix33 m = value->asA<Matrix33>();
-					// TODO: fire 2022-03-11 add basis
-				} else if (value->getTypeString() == "matrix44") {
-					// Matrix44 m = value->asA<Matrix44>();
-					// TODO: fire 2022-03-11 add transform
+				Variant v = get_value_as_material_x_variant(input);
+				// <input name="occlusion" type="float" value="0" />
+				// <input name="transmission" type="float" value="0" />
+				// <input name="specular_color" type="color3" value="1, 1, 1" />
+				// <input name="ior" type="float" value="1.5" />
+				// <input name="alpha" type="float" value="1" />
+				// <input name="alpha_mode" type="integer" value="0" />
+				// <input name="alpha_cutoff" type="float" value="0.5" />
+				// <input name="sheen_color" type="color3" value="0, 0, 0" />
+				// <input name="sheen_roughness" type="float" value="0" />
+				// <input name="clearcoat" type="float" value="0" />
+				// <input name="clearcoat_roughness" type="float" value="0" />
+				// <input name="clearcoat_normal" type="vector3" value="0, 0, 1" />
+				// <input name="emissive" type="color3" value="0, 0, 0" />
+				// <input name="thickness" type="float" value="0" />
+				// <input name="attenuation_distance" type="float" value="100000" />
+				// <input name="attenuation_color" type="color3" value="0, 0, 0" />
+				if (input_name == "base_color") {
+					mat->set_albedo(v);
+				} else if (input_name == "metallic") {
+					mat->set_metallic(v);
+				} else if (input_name == "roughness") {
+					mat->set_roughness(v);
+				}else if (input_name == "specular") {
+					mat->set_specular(v);
 				}
 				print_line(vformat("MaterialX attribute value %s", v));
 			}

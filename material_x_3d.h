@@ -20,9 +20,10 @@
 
 #include <MaterialXCore/Util.h>
 
-#include <MaterialXRenderGlsl/GlslProgram.h>
 #include <MaterialXGenGlsl/GlslShaderGenerator.h>
 #include <MaterialXGenShader/UnitSystem.h>
+#include <MaterialXRenderGlsl/GlslProgram.h>
+
 
 #include <iostream>
 
