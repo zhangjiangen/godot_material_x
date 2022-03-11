@@ -121,11 +121,7 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 		return RES();
 #endif
 	}
-
 	libraryFolders.push_back(ProjectSettings::get_singleton()->globalize_path("res://libraries").utf8().get_data());
-
-	bakeFilename = ProjectSettings::get_singleton()->globalize_path(String(p_path.get_basename() + ".mtlx").utf8().get_data()).utf8().get_data();
-
 	// 		"    --bakeWidth [INTEGER]          Specify the target width for texture baking (defaults to maximum image width of the source document)\n"
 	// 		"    --bakeHeight [INTEGER]         Specify the target height for texture baking (defaults to maximum image height of the source document)\n"
 	// 		"    --remap [TOKEN1:TOKEN2]        Specify the remapping from one token "
