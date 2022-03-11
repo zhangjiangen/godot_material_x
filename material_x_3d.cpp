@@ -285,16 +285,21 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 				const std::string &input_name = input->getName();
 				print_line(vformat("MaterialX input %s", String(input_name.c_str())));
 				print_line(vformat("MaterialX attribute name %s", String(input->getOutputString().c_str())));
-				if (input->hasOutputString()) {					
-					mx::NodeGraphPtr nodeGraph = element->getParent()->asA<mx::NodeGraph>();
-					if (!nodeGraph) {
+				if (input->hasOutputString()) {
+					mx::NodeGraphPtr node_graph = doc->getChildOfType<mx::NodeGraph>(input->getNodeGraphString());
+					if (!node_graph) {
 						continue;
 					}
-					mx::OutputPtr output = nodeGraph->getOutput(input->getNodeGraphString());
-					if (!output) {
+					mx::OutputPtr output = node_graph->getOutput(input->getOutputString());
+					mx::NodePtr image_node = node_graph->getNode(output->getNodeName());
+					if (!image_node) {
 						continue;
-					} 
-					String filepath = nodeGraph->getOutput(output->getName())->getName().c_str();
+					}
+					if (!image_node->getInputs().size()) {
+						continue;
+					}
+					String filepath = image_node->getInputs()[0]->getValueString().c_str();
+					filepath = ProjectSettings::get_singleton()->localize_path(filepath);
 					String line = vformat("MaterialX attribute filepath %s", filepath);
 					print_line(line);
 					continue;
