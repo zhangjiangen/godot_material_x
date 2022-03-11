@@ -281,6 +281,8 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 		for (mx::NodePtr node_inputs : mx::getShaderNodes(node)) {
 			const std::string &node_name = node_inputs->getName();
 			print_line(vformat("MaterialX material name %s", String(node_name.c_str())));
+			const std::string &category_name = node_inputs->getCategory();
+			print_line(vformat("MaterialX material type %s", String(category_name.c_str())));
 			for (mx::InputPtr input : node_inputs->getInputs()) {
 				const std::string &input_name = input->getName();
 				print_line(vformat("MaterialX input %s", String(input_name.c_str())));
@@ -305,19 +307,37 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 					print_line(line);
 					continue;
 				}
-				String type = String(input->getType().c_str());
-				if (type == "color4" || type == "vector4") {
-					print_line(vformat("MaterialX attribute value %s", String(input->getValueString().c_str())));
+				Variant v;
+				mx::ValuePtr value = input->getValue();
+				if (value->getTypeString() == "float") {
+					v = value->asA<float>();
+				} else if (value->getTypeString() == "integer") {
+					v = value->asA<int>();
+				} else if (value->getTypeString() == "boolean") {
+					v = value->asA<bool>();
+				} else if (value->getTypeString() == "color3") {
+					mx::Color3 color = value->asA<mx::Color3>();
+					v = Color(color[0], color[1], color[2]);
+				} else if (value->getTypeString() == "color4") {
+					mx::Color4 color = value->asA<mx::Color4>();
+					v = Color(color[0], color[1], color[2], color[3]);
+				} else if (value->getTypeString() == "vector2") {
+					mx::Vector2 vector_2 = value->asA<mx::Vector2>();
+					v = Vector2(vector_2[0], vector_2[1]);
+				} else if (value->getTypeString() == "vector3") {
+					mx::Vector3 vector_3 = value->asA<mx::Vector3>();
+					v = Vector3(vector_3[0], vector_3[1], vector_3[2]);
+				} else if (value->getTypeString() == "vector4") {
+					mx::Vector4 vector_4 = value->asA<mx::Vector4>();
+					v = Color(vector_4[0], vector_4[1], vector_4[2], vector_4[3]);
+				} else if (value->getTypeString() == "matrix33") {
+					// Matrix33 m = value->asA<Matrix33>();
+					// TODO: fire 2022-03-11 add basis
+				} else if (value->getTypeString() == "matrix44") {
+					// Matrix44 m = value->asA<Matrix44>();
+					// TODO: fire 2022-03-11 add transform
 				}
-				if (type == "color3" || type == "vector3") {
-					print_line(vformat("MaterialX attribute value %s", String(input->getValueString().c_str())));
-				}
-				if (type == "vector2") {
-					print_line(vformat("MaterialX attribute value %s", String(input->getValueString().c_str())));
-				}
-				if (type == "float") {
-					print_line(vformat("MaterialX attribute value %s", String(input->getValueString().c_str())));
-				}
+				print_line(vformat("MaterialX attribute value %s", v));
 			}
 		}
 		break;
