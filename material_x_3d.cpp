@@ -123,7 +123,7 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 	}
 
 	libraryFolders.push_back(ProjectSettings::get_singleton()->globalize_path("res://libraries").utf8().get_data());
-	bakeFilename = ProjectSettings::get_singleton()->globalize_path(String(p_path.get_basename() + ".gdmtlx").utf8().get_data()).utf8().get_data();
+	bakeFilename = ProjectSettings::get_singleton()->globalize_path(p_path.get_basename() + ".gdmtlx").utf8().get_data();
 
 	// 		"    --bakeWidth [INTEGER]          Specify the target width for texture baking (defaults to maximum image width of the source document)\n"
 	// 		"    --bakeHeight [INTEGER]         Specify the target height for texture baking (defaults to maximum image height of the source document)\n"
