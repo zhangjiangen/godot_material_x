@@ -284,7 +284,6 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 			for (mx::InputPtr input : node_inputs->getInputs()) {
 				const std::string &input_name = input->getName();
 				print_line(vformat("MaterialX input %s", String(input_name.c_str())));
-				print_line(vformat("MaterialX attribute name %s", String(input->getOutputString().c_str())));
 				if (input->hasOutputString()) {
 					mx::NodeGraphPtr node_graph = doc->getChildOfType<mx::NodeGraph>(input->getNodeGraphString());
 					if (!node_graph) {
@@ -299,8 +298,10 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 						continue;
 					}
 					String filepath = image_node->getInputs()[0]->getValueString().c_str();
+					filepath = filepath.replace("\\", "/");
 					filepath = ProjectSettings::get_singleton()->localize_path(filepath);
 					String line = vformat("MaterialX attribute filepath %s", filepath);
+					print_line(vformat("MaterialX attribute name %s", String(input->getOutputString().c_str())));
 					print_line(line);
 					continue;
 				}
