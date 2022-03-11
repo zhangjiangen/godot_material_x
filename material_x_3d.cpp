@@ -344,13 +344,16 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 						mat->set_texture(StandardMaterial3D::TextureParam::TEXTURE_METALLIC, tex);
 					} else if (input_name == "roughness") {
 						mat->set_texture(StandardMaterial3D::TextureParam::TEXTURE_ROUGHNESS, tex);
-					}else if (input_name == "normal") {
+					} else if (input_name == "normal") {
 						mat->set_texture(StandardMaterial3D::TextureParam::TEXTURE_NORMAL, tex);
+					} else if (input_name == "emissive") {
+						mat->set_texture(StandardMaterial3D::TextureParam::TEXTURE_EMISSION, tex);
+					}else if (input_name == "occlusion") {
+						mat->set_texture(StandardMaterial3D::TextureParam::TEXTURE_AMBIENT_OCCLUSION, tex);
 					}
 					continue;
 				}
 				Variant v = get_value_as_material_x_variant(input);
-				// <input name="occlusion" type="float" value="0" />
 				// <input name="transmission" type="float" value="0" />
 				// <input name="specular_color" type="color3" value="1, 1, 1" />
 				// <input name="ior" type="float" value="1.5" />
@@ -372,8 +375,10 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 					mat->set_metallic(v);
 				} else if (input_name == "roughness") {
 					mat->set_roughness(v);
-				}else if (input_name == "specular") {
+				} else if (input_name == "specular") {
 					mat->set_specular(v);
+				} else if (input_name == "emissive") {
+					mat->set_emission(v);
 				}
 				print_line(vformat("MaterialX attribute value %s", v));
 			}
