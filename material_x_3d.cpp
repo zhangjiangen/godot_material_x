@@ -285,7 +285,33 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 				const std::string &input_name = input->getName();
 				print_line(vformat("MaterialX input %s", String(input_name.c_str())));
 				print_line(vformat("MaterialX attribute name %s", String(input->getOutputString().c_str())));
-				print_line(vformat("MaterialX attribute type %s", String(input->getType().c_str())));
+				if (input->hasOutputString()) {					
+					mx::NodeGraphPtr nodeGraph = element->getParent()->asA<mx::NodeGraph>();
+					if (!nodeGraph) {
+						continue;
+					}
+					mx::OutputPtr output = nodeGraph->getOutput(input->getNodeGraphString());
+					if (!output) {
+						continue;
+					} 
+					String filepath = nodeGraph->getOutput(output->getName())->getName().c_str();
+					String line = vformat("MaterialX attribute filepath %s", filepath);
+					print_line(line);
+					continue;
+				}
+				String type = String(input->getType().c_str());
+				if (type == "color4" || type == "vector4") {
+					print_line(vformat("MaterialX attribute value %s", String(input->getValueString().c_str())));
+				}
+				if (type == "color3" || type == "vector3") {
+					print_line(vformat("MaterialX attribute value %s", String(input->getValueString().c_str())));
+				}
+				if (type == "vector2") {
+					print_line(vformat("MaterialX attribute value %s", String(input->getValueString().c_str())));
+				}
+				if (type == "float") {
+					print_line(vformat("MaterialX attribute value %s", String(input->getValueString().c_str())));
+				}
 			}
 		}
 		break;
