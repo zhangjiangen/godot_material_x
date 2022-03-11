@@ -1,6 +1,8 @@
 #include "material_x_3d.h"
 
 #include "core/config/project_settings.h"
+#include "core/io/dir_access.h"
+#include "modules/tinyexr/image_loader_tinyexr.h"
 
 mx::FileSearchPath getDefaultSearchPath() {
 	mx::FilePath modulePath = mx::FilePath::getModulePath();
@@ -96,35 +98,8 @@ Variant get_value_as_material_x_variant(mx::InputPtr p_input) {
 	return Variant();
 }
 
-RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error *r_error, bool p_use_sub_threads, float *r_progress, CacheMode p_cache_mode) {
+Error load_mtlx_document(mx::DocumentPtr p_doc, String p_path, mx::GenContext context) {
 	mx::FilePath materialFilename = ProjectSettings::get_singleton()->globalize_path(p_path).utf8().get_data();
-	mx::FileSearchPath searchPath = getDefaultSearchPath();
-	mx::FilePathVec libraryFolders;
-
-	int bakeWidth = -1;
-	int bakeHeight = -1;
-	std::string bakeFormat;
-	DocumentModifiers modifiers;
-	bool bakeHdr = false;
-
-	std::string bakeFilename;
-
-	mx::ImageHandlerPtr imageHandler =
-			mx::GLTextureHandler::create(mx::StbImageLoader::create());
-
-	if (bakeFormat == std::string("EXR") || bakeFormat == std::string("exr")) {
-		bakeHdr = true;
-#if MATERIALX_BUILD_OIIO
-		imageHandler->addLoader(mx::OiioImageLoader::create());
-#else
-		std::cout << "OpenEXR is not supported\n";
-		return RES();
-#endif
-	}
-
-	libraryFolders.push_back(ProjectSettings::get_singleton()->globalize_path("res://libraries").utf8().get_data());
-	bakeFilename = ProjectSettings::get_singleton()->globalize_path(p_path.get_basename() + ".gdmtlx").utf8().get_data();
-
 	// 		"    --bakeWidth [INTEGER]          Specify the target width for texture baking (defaults to maximum image width of the source document)\n"
 	// 		"    --bakeHeight [INTEGER]         Specify the target height for texture baking (defaults to maximum image height of the source document)\n"
 	// 		"    --remap [TOKEN1:TOKEN2]        Specify the remapping from one token "
@@ -150,9 +125,6 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 	//     } else if (token == "--terminator") {
 	//         modifiers.filePrefixTerminator = nextToken;
 	//     }
-
-	imageHandler->setSearchPath(searchPath);
-
 	std::vector<MaterialPtr> materials;
 
 	// Document management
@@ -164,31 +136,24 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 	mx::StringVec distanceUnitOptions;
 	mx::LinearUnitConverterPtr distanceUnitConverter;
 
-	bool bakeAverage = false;
-	bool bakeOptimize = true;
-
 	mx::UnitConverterRegistryPtr unitRegistry =
 			mx::UnitConverterRegistry::create();
-
-	mx::GenContext context = mx::GlslShaderGenerator::create();
-
 	// Initialize search paths.
+	mx::FileSearchPath searchPath = getDefaultSearchPath();
 	for (const mx::FilePath &path : searchPath) {
 		context.registerSourceCodeSearchPath(path / "libraries");
 	}
-
-	std::vector<MaterialPtr> newMaterials;
-	// Load source document.
-	mx::DocumentPtr doc = mx::createDocument();
 	try {
 		stdLib = mx::createDocument();
-		xincludeFiles = mx::loadLibraries(libraryFolders, searchPath, stdLib);
+		mx::FilePathVec libraryFolders;
+		libraryFolders.push_back(ProjectSettings::get_singleton()->globalize_path("res://libraries").utf8().get_data());
+		mx::StringSet xincludeFiles = mx::loadLibraries(libraryFolders, searchPath, stdLib);
 		// Import libraries.
 		if (xincludeFiles.empty()) {
 			std::cerr << "Could not find standard data libraries on the given "
 						 "search path: "
 					  << searchPath.asString() << std::endl;
-			return RES();
+			return FAILED;
 		}
 
 		// Initialize color management.
@@ -228,83 +193,136 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 	} catch (std::exception &e) {
 		std::cerr << "Failed to load standard data libraries: " << e.what()
 				  << std::endl;
-		return RES();
+		return FAILED;
 	}
 
-	doc->importLibrary(stdLib);
+	p_doc->importLibrary(stdLib);
 
 	MaterialX::FilePath parentPath = materialFilename.getParentPath();
 	searchPath.append(materialFilename.getParentPath());
 
 	// Set up read options.
 	mx::XmlReadOptions readOptions;
-	readOptions.readXIncludeFunction = [](mx::DocumentPtr doc,
+	readOptions.readXIncludeFunction = [](mx::DocumentPtr p_doc,
 											   const mx::FilePath &materialFilename,
 											   const mx::FileSearchPath &searchPath,
 											   const mx::XmlReadOptions *newReadoptions) {
 		mx::FilePath resolvedFilename = searchPath.find(materialFilename);
 		if (resolvedFilename.exists()) {
-			readFromXmlFile(doc, resolvedFilename, searchPath, newReadoptions);
+			readFromXmlFile(p_doc, resolvedFilename, searchPath, newReadoptions);
 		} else {
 			std::cerr << "Include file not found: " << materialFilename.asString()
 					  << std::endl;
 		}
 	};
-	mx::readFromXmlFile(doc, materialFilename, searchPath, &readOptions);
+	mx::readFromXmlFile(p_doc, materialFilename, searchPath, &readOptions);
 
+	DocumentModifiers modifiers;
+	// TODO: fire 2022-03-11 Does nothing yet.
 	// Apply modifiers to the content document.
-	applyModifiers(doc, modifiers);
+	applyModifiers(p_doc, modifiers);
 
 	// Validate the document.
 	std::string message;
-	ERR_FAIL_COND_V_MSG(!doc->validate(&message), RES(), vformat("Validation warnings for %s", String(message.c_str())));
+	ERR_FAIL_COND_V_MSG(!p_doc->validate(&message), FAILED, vformat("Validation warnings for %s", String(message.c_str())));
+	return OK;
+}
 
-	if (!doc) {
+RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error *r_error, bool p_use_sub_threads, float *r_progress, CacheMode p_cache_mode) {
+	// Load source document.
+	mx::DocumentPtr doc = mx::createDocument();
+	mx::GenContext context = mx::GlslShaderGenerator::create();
+	String folder = "res://.godot/imported/" + p_path.get_file().get_basename() +
+			"-" + p_path.md5_text() + "/";
+	String mtlx = folder + p_path.get_file().get_basename() +
+			"-" + p_path.md5_text() + ".mtlx";
+	std::string bakeFilename = ProjectSettings::get_singleton()->globalize_path(mtlx).utf8().get_data();
+	// Initialize search paths.
+	mx::FileSearchPath searchPath = getDefaultSearchPath();
+	mx::FilePath materialFilename = ProjectSettings::get_singleton()->globalize_path(p_path).utf8().get_data();
+	searchPath.append(materialFilename.getParentPath());
+	mx::FilePathVec libraryFolders;
+	libraryFolders.push_back(ProjectSettings::get_singleton()->globalize_path("res://libraries").utf8().get_data());
+	mx::DocumentPtr stdLib;
+	stdLib = mx::createDocument();
+	mx::StringSet xincludeFiles = mx::loadLibraries(libraryFolders, searchPath, stdLib);
+	{
+		Error err = load_mtlx_document(doc, p_path, context);
+		if (err != OK) {
+			return RES();
+		}
+		int bakeWidth = -1;
+		int bakeHeight = -1;
+		std::string bakeFormat;
+		bool bakeHdr = false;
+		mx::ImageHandlerPtr imageHandler =
+				mx::GLTextureHandler::create(mx::StbImageLoader::create());
+		for (const mx::FilePath &path : searchPath) {
+			context.registerSourceCodeSearchPath(path / "libraries");
+		}
+		imageHandler->setSearchPath(searchPath);
+
+		if (bakeFormat == std::string("EXR") || bakeFormat == std::string("exr")) {
+			bakeHdr = true;
+#if MATERIALX_BUILD_OIIO
+			imageHandler->addLoader(mx::OiioImageLoader::create());
+#else
+			std::cout << "OpenEXR is not supported\n";
+			return RES();
+#endif
+		}
+
+		// Compute baking resolution.
+		mx::ImageVec imageVec = imageHandler->getReferencedImages(doc);
+		auto maxImageSize = mx::getMaxDimensions(imageVec);
+		if (bakeWidth == -1) {
+			bakeWidth = std::max(maxImageSize.first, (unsigned int)4);
+		}
+		if (bakeHeight == -1) {
+			bakeHeight = std::max(maxImageSize.second, (unsigned int)4);
+		}
+
+		// Construct a texture baker.
+		mx::Image::BaseType baseType =
+				bakeHdr ? mx::Image::BaseType::FLOAT : mx::Image::BaseType::UINT8;
+		mx::TextureBakerPtr baker =
+				mx::TextureBaker::create(bakeWidth, bakeHeight, baseType);
+		baker->setupUnitSystem(stdLib);
+		baker->setDistanceUnit(context.getOptions().targetDistanceUnit);
+		bool bakeAverage = false;
+		bool bakeOptimize = true;
+		baker->setAverageImages(bakeAverage);
+		baker->setOptimizeConstants(bakeOptimize);
+
+		// Assign our existing image handler, releasing any existing render
+		// resources for cached images.
+		imageHandler->releaseRenderResources();
+		baker->setImageHandler(imageHandler);
+		DirAccessRef d = DirAccess::create(DirAccess::ACCESS_RESOURCES);
+		d->make_dir_recursive(folder);
+
+		// Bake all materials in the active document.
+		try {
+			baker->bakeAllMaterials(doc, searchPath, bakeFilename);
+		} catch (std::exception &e) {
+			std::cerr << "Error in texture baking: " << e.what() << std::endl;
+		}
+
+		// Release any render resources generated by the baking process.
+		imageHandler->releaseRenderResources();
+	}
+	mx::DocumentPtr new_doc = mx::createDocument();
+	Error err = load_mtlx_document(new_doc, bakeFilename.c_str(), mx::GlslShaderGenerator::create());
+	xincludeFiles = mx::loadLibraries(libraryFolders, searchPath, stdLib);
+	if (err != OK) {
 		return RES();
 	}
-	imageHandler->setSearchPath(searchPath);
-
-	// Compute baking resolution.
-	mx::ImageVec imageVec = imageHandler->getReferencedImages(doc);
-	auto maxImageSize = mx::getMaxDimensions(imageVec);
-	if (bakeWidth == -1) {
-		bakeWidth = std::max(maxImageSize.first, (unsigned int)4);
-	}
-	if (bakeHeight == -1) {
-		bakeHeight = std::max(maxImageSize.second, (unsigned int)4);
-	}
-
-	// Construct a texture baker.
-	mx::Image::BaseType baseType =
-			bakeHdr ? mx::Image::BaseType::FLOAT : mx::Image::BaseType::UINT8;
-	mx::TextureBakerPtr baker =
-			mx::TextureBaker::create(bakeWidth, bakeHeight, baseType);
-	baker->setupUnitSystem(stdLib);
-	baker->setDistanceUnit(context.getOptions().targetDistanceUnit);
-	baker->setAverageImages(bakeAverage);
-	baker->setOptimizeConstants(bakeOptimize);
-
-	// Assign our existing image handler, releasing any existing render
-	// resources for cached images.
-	imageHandler->releaseRenderResources();
-	baker->setImageHandler(imageHandler);
-
-	// Bake all materials in the active document.
-	try {
-		baker->bakeAllMaterials(doc, searchPath, bakeFilename);
-	} catch (std::exception &e) {
-		std::cerr << "Error in texture baking: " << e.what() << std::endl;
-	}
-
-	// Release any render resources generated by the baking process.
-	imageHandler->releaseRenderResources();
-
-	std::vector<mx::TypedElementPtr> renderableMaterials;
-	findRenderableElements(doc, renderableMaterials);
+	std::vector<mx::TypedElementPtr> renderable_materials;
+	findRenderableElements(new_doc, renderable_materials);
 	Ref<StandardMaterial3D> mat;
 	mat.instantiate();
-	for (size_t i = 0; i < renderableMaterials.size(); i++) {
-		const mx::TypedElementPtr &element = renderableMaterials[i];
+	for (size_t i = 0; i < renderable_materials.size(); i++) {
+		const mx::TypedElementPtr &element = renderable_materials[i];
 		if (!element || !element->isA<mx::Node>()) {
 			continue;
 		}
@@ -318,7 +336,7 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 				const std::string &input_name = input->getName();
 				print_line(vformat("MaterialX input %s", String(input_name.c_str())));
 				if (input->hasOutputString()) {
-					mx::NodeGraphPtr node_graph = doc->getChildOfType<mx::NodeGraph>(input->getNodeGraphString());
+					mx::NodeGraphPtr node_graph = new_doc->getChildOfType<mx::NodeGraph>(input->getNodeGraphString());
 					if (!node_graph) {
 						continue;
 					}
@@ -333,10 +351,17 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 					String filepath = image_node->getInputs()[0]->getValueString().c_str();
 					filepath = filepath.replace("\\", "/");
 					filepath = ProjectSettings::get_singleton()->localize_path(filepath);
+					filepath = filepath.lstrip("res://");
 					String line = vformat("MaterialX attribute filepath %s", filepath);
 					print_line(vformat("MaterialX attribute name %s", String(input->getOutputString().c_str())));
 					print_line(line);
-					Ref<Texture2D> tex = ResourceLoader::load(filepath, "Texture2D");
+					Ref<ImageTexture> tex;
+					tex.instantiate();
+					Ref<Image> mtlx_image;
+					mtlx_image.instantiate();
+					err = ImageLoader::load_image(filepath, mtlx_image);
+					ERR_CONTINUE_MSG(err != OK, "Can't load embedded image.");
+					tex->create_from_image(mtlx_image);
 					if (input_name == "base_color") {
 						mat->set_texture(StandardMaterial3D::TextureParam::TEXTURE_ALBEDO, tex);
 					} else if (input_name == "metallic") {
@@ -344,10 +369,12 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 					} else if (input_name == "roughness") {
 						mat->set_texture(StandardMaterial3D::TextureParam::TEXTURE_ROUGHNESS, tex);
 					} else if (input_name == "normal") {
+						mat->set_feature(StandardMaterial3D::FEATURE_NORMAL_MAPPING, true);
 						mat->set_texture(StandardMaterial3D::TextureParam::TEXTURE_NORMAL, tex);
-					} else if (input_name == "emissive") {
+					} else if (input_name == "emissive_color") {
+						mat->set_feature(StandardMaterial3D::FEATURE_EMISSION, true);
 						mat->set_texture(StandardMaterial3D::TextureParam::TEXTURE_EMISSION, tex);
-					}else if (input_name == "occlusion") {
+					} else if (input_name == "occlusion") {
 						mat->set_texture(StandardMaterial3D::TextureParam::TEXTURE_AMBIENT_OCCLUSION, tex);
 					}
 					continue;
@@ -376,7 +403,8 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 					mat->set_roughness(v);
 				} else if (input_name == "specular") {
 					mat->set_specular(v);
-				} else if (input_name == "emissive") {
+				} else if (input_name == "emissive_color") {
+					mat->set_feature(StandardMaterial3D::FEATURE_EMISSION, true);
 					mat->set_emission(v);
 				}
 				print_line(vformat("MaterialX attribute value %s", v));

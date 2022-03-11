@@ -24,7 +24,6 @@
 #include <MaterialXGenShader/UnitSystem.h>
 #include <MaterialXRenderGlsl/GlslProgram.h>
 
-
 #include <iostream>
 
 class MTLXLoader : public ResourceFormatLoader {
