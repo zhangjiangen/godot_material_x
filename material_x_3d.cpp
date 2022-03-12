@@ -67,6 +67,9 @@ void applyModifiers(mx::DocumentPtr doc, const DocumentModifiers &modifiers) {
 
 Variant get_value_as_material_x_variant(mx::InputPtr p_input) {
 	mx::ValuePtr value = p_input->getValue();
+	if (!value) {
+		return Variant();
+	}
 	if (value->getTypeString() == "float") {
 		return value->asA<float>();
 	} else if (value->getTypeString() == "integer") {
@@ -222,9 +225,6 @@ Error load_mtlx_document(mx::DocumentPtr p_doc, String p_path, mx::GenContext co
 	// Apply modifiers to the content document.
 	applyModifiers(p_doc, modifiers);
 
-	// Validate the document.
-	std::string message;
-	ERR_FAIL_COND_V_MSG(!p_doc->validate(&message), FAILED, vformat("Validation warnings for %s", String(message.c_str())));
 	return OK;
 }
 
@@ -239,7 +239,7 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 	std::string bakeFilename = ProjectSettings::get_singleton()->globalize_path(mtlx).utf8().get_data();
 	// Initialize search paths.
 	mx::FileSearchPath searchPath = getDefaultSearchPath();
-	mx::FilePath materialFilename = ProjectSettings::get_singleton()->globalize_path(p_path).utf8().get_data();
+	mx::FilePath materialFilename = p_path.utf8().get_data();
 	searchPath.append(materialFilename.getParentPath());
 	mx::FilePathVec libraryFolders;
 	libraryFolders.push_back(ProjectSettings::get_singleton()->globalize_path("res://libraries").utf8().get_data());
@@ -247,10 +247,13 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 	stdLib = mx::createDocument();
 	mx::StringSet xincludeFiles = mx::loadLibraries(libraryFolders, searchPath, stdLib);
 	{
-		Error err = load_mtlx_document(doc, p_path, context);
+		Error err = load_mtlx_document(doc, ProjectSettings::get_singleton()->globalize_path(p_path).utf8().get_data(), context);
 		if (err != OK) {
 			return RES();
 		}
+		// Validate the document.
+		std::string message;
+		ERR_FAIL_COND_V_MSG(!doc->validate(&message), RES(), vformat("Validation warnings for %s", String(message.c_str())));
 		int bakeWidth = -1;
 		int bakeHeight = -1;
 		std::string bakeFormat;
@@ -312,11 +315,17 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 		imageHandler->releaseRenderResources();
 	}
 	mx::DocumentPtr new_doc = mx::createDocument();
-	Error err = load_mtlx_document(new_doc, bakeFilename.c_str(), mx::GlslShaderGenerator::create());
-	xincludeFiles = mx::loadLibraries(libraryFolders, searchPath, stdLib);
+	Error err;
+	try {
+		err = load_mtlx_document(new_doc, mtlx, mx::GlslShaderGenerator::create());
+	} catch (std::exception &e) {
+		ERR_PRINT("Can't load materials.");
+	}
 	if (err != OK) {
 		return RES();
 	}
+	xincludeFiles = mx::loadLibraries(libraryFolders, searchPath, stdLib);
+
 	std::vector<mx::TypedElementPtr> renderable_materials;
 	findRenderableElements(new_doc, renderable_materials);
 	Ref<StandardMaterial3D> mat;
@@ -329,12 +338,12 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 		const mx::NodePtr &node = element->asA<mx::Node>();
 		for (mx::NodePtr node_inputs : mx::getShaderNodes(node)) {
 			const std::string &node_name = node_inputs->getName();
-			print_verbose(vformat("MaterialX material name %s", String(node_name.c_str())));
+			print_line(vformat("MaterialX material name %s", String(node_name.c_str())));
 			const std::string &category_name = node_inputs->getCategory();
-			print_verbose(vformat("MaterialX material type %s", String(category_name.c_str())));
+			print_line(vformat("MaterialX material type %s", String(category_name.c_str())));
 			for (mx::InputPtr input : node_inputs->getInputs()) {
 				const std::string &input_name = input->getName();
-				print_verbose(vformat("MaterialX input %s", String(input_name.c_str())));
+				print_line(vformat("MaterialX input %s", String(input_name.c_str())));
 				if (input->hasOutputString()) {
 					mx::NodeGraphPtr node_graph = new_doc->getChildOfType<mx::NodeGraph>(input->getNodeGraphString());
 					if (!node_graph) {
@@ -353,8 +362,8 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 					filepath = ProjectSettings::get_singleton()->localize_path(filepath);
 					filepath = filepath.lstrip("res://");
 					String line = vformat("MaterialX attribute filepath %s", filepath);
-					print_verbose(vformat("MaterialX attribute name %s", String(input->getOutputString().c_str())));
-					print_verbose(line);
+					print_line(vformat("MaterialX attribute name %s", String(input->getOutputString().c_str())));
+					print_line(line);
 					Ref<ImageTexture> tex;
 					tex.instantiate();
 					Ref<Image> mtlx_image;
@@ -420,12 +429,12 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 					mat->set_transparency(StandardMaterial3D::TRANSPARENCY_ALPHA_SCISSOR);
 					mat->set_depth_draw_mode(BaseMaterial3D::DEPTH_DRAW_ALWAYS);
 					mat->set_alpha_scissor_threshold(v);
-				} else if (input_name == "base_color") {					
+				} else if (input_name == "base_color") {
 					Color c = mat->get_albedo();
 					c.a = c.a * Color(v).a;
 					mat->set_albedo(c);
 				}
-				print_verbose(vformat("MaterialX attribute value %s", v));
+				print_line(vformat("MaterialX attribute value %s", String(v)));
 			}
 		}
 		break;
