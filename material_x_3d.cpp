@@ -247,7 +247,14 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 	stdLib = mx::createDocument();
 	mx::StringSet xincludeFiles = mx::loadLibraries(libraryFolders, searchPath, stdLib);
 	{
-		Error err = load_mtlx_document(doc, p_path, context);
+		Error err;
+		try {
+			err = load_mtlx_document(doc, p_path, context);
+		} catch (std::exception &e) {
+			ERR_PRINT("Can't load materials.");
+			return RES();
+		}
+
 		if (err != OK) {
 			return RES();
 		}
@@ -312,7 +319,14 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 		imageHandler->releaseRenderResources();
 	}
 	mx::DocumentPtr new_doc = mx::createDocument();
-	Error err = load_mtlx_document(new_doc, bakeFilename.c_str(), mx::GlslShaderGenerator::create());
+	Error err;
+	try {
+		err = load_mtlx_document(new_doc, bakeFilename.c_str(), mx::GlslShaderGenerator::create());
+	} catch (std::exception &e) {
+		ERR_PRINT("Can't load materials.");
+		return RES();
+	}
+
 	xincludeFiles = mx::loadLibraries(libraryFolders, searchPath, stdLib);
 	if (err != OK) {
 		return RES();
