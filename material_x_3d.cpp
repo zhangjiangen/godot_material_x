@@ -143,6 +143,8 @@ Error load_mtlx_document(mx::DocumentPtr p_doc, String p_path, mx::GenContext co
 			mx::UnitConverterRegistry::create();
 	// Initialize search paths.
 	mx::FileSearchPath searchPath = getDefaultSearchPath();
+	MaterialX::FilePath parentPath = materialFilename.getParentPath();
+	searchPath.append(materialFilename.getParentPath());
 	for (const mx::FilePath &path : searchPath) {
 		context.registerSourceCodeSearchPath(path / "libraries");
 	}
@@ -201,9 +203,6 @@ Error load_mtlx_document(mx::DocumentPtr p_doc, String p_path, mx::GenContext co
 
 	p_doc->importLibrary(stdLib);
 
-	MaterialX::FilePath parentPath = materialFilename.getParentPath();
-	searchPath.append(materialFilename.getParentPath());
-
 	// Set up read options.
 	mx::XmlReadOptions readOptions;
 	readOptions.readXIncludeFunction = [](mx::DocumentPtr p_doc,
@@ -247,22 +246,12 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 	stdLib = mx::createDocument();
 	mx::StringSet xincludeFiles = mx::loadLibraries(libraryFolders, searchPath, stdLib);
 	{
-		Error err = load_mtlx_document(doc, ProjectSettings::get_singleton()->globalize_path(p_path).utf8().get_data(), context);
-		if (err != OK) {
-			return RES();
-		}
-		// Validate the document.
-		std::string message;
-		ERR_FAIL_COND_V_MSG(!doc->validate(&message), RES(), vformat("Validation warnings for %s", String(message.c_str())));
 		int bakeWidth = -1;
 		int bakeHeight = -1;
 		std::string bakeFormat;
 		bool bakeHdr = false;
 		mx::ImageHandlerPtr imageHandler =
 				mx::GLTextureHandler::create(mx::StbImageLoader::create());
-		for (const mx::FilePath &path : searchPath) {
-			context.registerSourceCodeSearchPath(path / "libraries");
-		}
 		imageHandler->setSearchPath(searchPath);
 
 		if (bakeFormat == std::string("EXR") || bakeFormat == std::string("exr")) {
@@ -284,6 +273,14 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 		if (bakeHeight == -1) {
 			bakeHeight = std::max(maxImageSize.second, (unsigned int)4);
 		}
+
+		Error err = load_mtlx_document(doc, ProjectSettings::get_singleton()->globalize_path(p_path).utf8().get_data(), context);
+		if (err != OK) {
+			return RES();
+		}
+		// Validate the document.
+		std::string message;
+		ERR_FAIL_COND_V_MSG(!doc->validate(&message), RES(), vformat("Validation warnings for %s", String(message.c_str())));
 
 		// Construct a texture baker.
 		mx::Image::BaseType baseType =
@@ -317,7 +314,7 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 	mx::DocumentPtr new_doc = mx::createDocument();
 	Error err;
 	try {
-		err = load_mtlx_document(new_doc, mtlx, mx::GlslShaderGenerator::create());
+		err = load_mtlx_document(new_doc, bakeFilename.c_str(), mx::GlslShaderGenerator::create());
 	} catch (std::exception &e) {
 		ERR_PRINT("Can't load materials.");
 	}
