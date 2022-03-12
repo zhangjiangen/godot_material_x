@@ -365,6 +365,7 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 					if (input_name == "base_color") {
 						mat->set_texture(StandardMaterial3D::TextureParam::TEXTURE_ALBEDO, tex);
 					} else if (input_name == "metallic") {
+						mat->set_metallic(1.0f);
 						mat->set_texture(StandardMaterial3D::TextureParam::TEXTURE_METALLIC, tex);
 					} else if (input_name == "roughness") {
 						mat->set_texture(StandardMaterial3D::TextureParam::TEXTURE_ROUGHNESS, tex);
