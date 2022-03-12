@@ -365,7 +365,9 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 					if (input_name == "base_color") {
 						mat->set_texture(StandardMaterial3D::TextureParam::TEXTURE_ALBEDO, tex);
 					} else if (input_name == "metallic") {
-						mat->set_metallic(1.0f);
+						if (mat->get_metallic() == 0.0f) {
+							mat->set_metallic(1.0f);
+						}
 						mat->set_texture(StandardMaterial3D::TextureParam::TEXTURE_METALLIC, tex);
 					} else if (input_name == "roughness") {
 						mat->set_texture(StandardMaterial3D::TextureParam::TEXTURE_ROUGHNESS, tex);
@@ -421,7 +423,7 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 					mat->set_transparency(StandardMaterial3D::TRANSPARENCY_ALPHA_SCISSOR);
 					mat->set_depth_draw_mode(BaseMaterial3D::DEPTH_DRAW_ALWAYS);
 					mat->set_alpha_scissor_threshold(v);
-				} else if (input_name == "base_color") {					
+				} else if (input_name == "base_color") {
 					Color c = mat->get_albedo();
 					c.a = c.a * Color(v).a;
 					mat->set_albedo(c);
