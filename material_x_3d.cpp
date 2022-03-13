@@ -367,7 +367,7 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 						tex->create_from_image(mtlx_image);
 					}
 					if (input_name == "base_color") {
-						mat->set_feature(BaseMaterial3D::FLAG_ALBEDO_TEXTURE_FORCE_SRGB, true);
+						mat->set_flag(BaseMaterial3D::FLAG_ALBEDO_TEXTURE_FORCE_SRGB, true);
 						mat->set_texture(BaseMaterial3D::TextureParam::TEXTURE_ALBEDO, tex);
 					} else if (input_name == "metallic") {
 						if (mat->get_metallic() == 0.0f) {
