@@ -4,7 +4,7 @@
 #include "core/io/dir_access.h"
 #include "modules/tinyexr/image_loader_tinyexr.h"
 
-mx::FileSearchPath getDefaultSearchPath() {
+mx::FileSearchPath getDefaultSearchPath(mx::GenContext context) {
 	mx::FilePath modulePath = mx::FilePath::getModulePath();
 	mx::FilePath installRootPath = modulePath.getParentPath();
 	mx::FilePath devRootPath =
@@ -14,7 +14,9 @@ mx::FileSearchPath getDefaultSearchPath() {
 	searchPath.append(installRootPath);
 	searchPath.append(devRootPath);
 	searchPath.append(ProjectSettings::get_singleton()->globalize_path("res://").utf8().get_data());
-
+	for (const mx::FilePath &path : searchPath) {
+		context.registerSourceCodeSearchPath(path / "libraries");
+	}
 	return searchPath;
 }
 
@@ -139,10 +141,7 @@ Error load_mtlx_document(mx::DocumentPtr p_doc, String p_path, mx::GenContext co
 	mx::UnitConverterRegistryPtr unitRegistry =
 			mx::UnitConverterRegistry::create();
 	// Initialize search paths.
-	mx::FileSearchPath searchPath = getDefaultSearchPath();
-	for (const mx::FilePath &path : searchPath) {
-		context.registerSourceCodeSearchPath(path / "libraries");
-	}
+	mx::FileSearchPath searchPath = getDefaultSearchPath(context);
 	try {
 		stdLib = mx::createDocument();
 		mx::FilePathVec libraryFolders;
@@ -237,8 +236,7 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 	String mtlx = folder + p_path.get_file().get_basename() +
 			"-" + p_path.md5_text() + ".mtlx";
 	std::string bakeFilename = ProjectSettings::get_singleton()->globalize_path(mtlx).utf8().get_data();
-	// Initialize search paths.
-	mx::FileSearchPath searchPath = getDefaultSearchPath();
+	mx::FileSearchPath searchPath = getDefaultSearchPath(context);
 	mx::FilePath materialFilename = ProjectSettings::get_singleton()->globalize_path(p_path).utf8().get_data();
 	searchPath.append(materialFilename.getParentPath());
 	mx::FilePathVec libraryFolders;
