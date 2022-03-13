@@ -260,10 +260,12 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 		int bakeHeight = -1;
 		std::string bakeFormat;
 		bool bakeHdr = false;
-		mx::ImageHandlerPtr imageHandler =
-				mx::GLTextureHandler::create(mx::StbImageLoader::create());
-		for (const mx::FilePath &path : searchPath) {
-			context.registerSourceCodeSearchPath(path / "libraries");
+		mx::ImageHandlerPtr imageHandler = nullptr;
+		try {
+			imageHandler = mx::GLTextureHandler::create(mx::StbImageLoader::create());
+		} catch (std::exception &) {
+			ERR_PRINT("Can't load images.");
+			return RES();
 		}
 		imageHandler->setSearchPath(searchPath);
 
