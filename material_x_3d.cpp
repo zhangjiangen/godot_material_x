@@ -353,6 +353,9 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 					String filepath = image_node->getInputs()[0]->getValueString().c_str();
 					if (input_name == "normal") {
 						mx::NodePtr normal_image_node = node_graph->getNode(image_node->getInputs()[0]->getNodeName());
+						if (!normal_image_node->getInputs().size()) {
+							continue;
+						}
 						filepath = normal_image_node->getInputs()[0]->getValueString().c_str();
 					}
 					filepath = filepath.replace("\\", "/");
