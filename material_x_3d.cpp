@@ -260,13 +260,6 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 		int bakeHeight = -1;
 		std::string bakeFormat;
 		bool bakeHdr = false;
-		mx::ImageHandlerPtr imageHandler = nullptr;
-		try {
-			imageHandler = mx::GLTextureHandler::create(mx::StbImageLoader::create());
-		} catch (std::exception &) {
-			ERR_PRINT("Can't load images.");
-			return RES();
-		}
 		imageHandler->setSearchPath(searchPath);
 
 		if (bakeFormat == std::string("EXR") || bakeFormat == std::string("exr")) {
@@ -278,7 +271,6 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 			return RES();
 #endif
 		}
-
 		// Compute baking resolution.
 		mx::ImageVec imageVec = imageHandler->getReferencedImages(doc);
 		auto maxImageSize = mx::getMaxDimensions(imageVec);
@@ -301,10 +293,6 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 		baker->setAverageImages(bakeAverage);
 		baker->setOptimizeConstants(bakeOptimize);
 
-		// Assign our existing image handler, releasing any existing render
-		// resources for cached images.
-		imageHandler->releaseRenderResources();
-		baker->setImageHandler(imageHandler);
 		DirAccessRef d = DirAccess::create(DirAccess::ACCESS_RESOURCES);
 		d->make_dir_recursive(folder);
 
@@ -375,24 +363,27 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 					mtlx_image.instantiate();
 					err = ImageLoader::load_image(filepath, mtlx_image);
 					ERR_CONTINUE_MSG(err != OK, "Can't load embedded image.");
+					mtlx_image->generate_mipmaps();
 					tex->create_from_image(mtlx_image);
 					if (input_name == "base_color") {
-						mat->set_texture(StandardMaterial3D::TextureParam::TEXTURE_ALBEDO, tex);
+						mat->set_texture(BaseMaterial3D::TextureParam::TEXTURE_ALBEDO, tex);
 					} else if (input_name == "metallic") {
 						if (mat->get_metallic() == 0.0f) {
 							mat->set_metallic(1.0f);
 						}
-						mat->set_texture(StandardMaterial3D::TextureParam::TEXTURE_METALLIC, tex);
+						mat->set_metallic_texture_channel(BaseMaterial3D::TEXTURE_CHANNEL_BLUE);
+						mat->set_texture(BaseMaterial3D::TEXTURE_METALLIC, tex);
 					} else if (input_name == "roughness") {
-						mat->set_texture(StandardMaterial3D::TextureParam::TEXTURE_ROUGHNESS, tex);
+						mat->set_texture(BaseMaterial3D::TEXTURE_ROUGHNESS, tex);
+						mat->set_roughness_texture_channel(BaseMaterial3D::TEXTURE_CHANNEL_GREEN);
 					} else if (input_name == "normal") {
 						mat->set_feature(StandardMaterial3D::FEATURE_NORMAL_MAPPING, true);
-						mat->set_texture(StandardMaterial3D::TextureParam::TEXTURE_NORMAL, tex);
+						mat->set_texture(StandardMaterial3D::TEXTURE_NORMAL, tex);
 					} else if (input_name == "emissive_color") {
-						mat->set_feature(StandardMaterial3D::FEATURE_EMISSION, true);
-						mat->set_texture(StandardMaterial3D::TextureParam::TEXTURE_EMISSION, tex);
+						mat->set_feature(BaseMaterial3D::FEATURE_EMISSION, true);
+						mat->set_texture(BaseMaterial3D::TEXTURE_EMISSION, tex);
 					} else if (input_name == "occlusion") {
-						mat->set_texture(StandardMaterial3D::TextureParam::TEXTURE_AMBIENT_OCCLUSION, tex);
+						mat->set_texture(BaseMaterial3D::TEXTURE_AMBIENT_OCCLUSION, tex);
 					}
 					continue;
 				}
@@ -424,17 +415,19 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 					mat->set_roughness(v);
 				} else if (input_name == "specular") {
 					mat->set_specular(v);
+				} else if (input_name == "normal") {
+					mat->set_feature(StandardMaterial3D::FEATURE_NORMAL_MAPPING, true);
 				} else if (input_name == "emissive_color") {
-					mat->set_feature(StandardMaterial3D::FEATURE_EMISSION, true);
+					mat->set_feature(BaseMaterial3D::FEATURE_EMISSION, true);
 					mat->set_emission(v);
 				} else if (input_name == "alpha_mode") {
 					if (v) {
-						mat->set_transparency(StandardMaterial3D::TRANSPARENCY_ALPHA);
-						mat->set_alpha_antialiasing(StandardMaterial3D::ALPHA_ANTIALIASING_ALPHA_TO_COVERAGE_AND_TO_ONE);
+						mat->set_transparency(BaseMaterial3D::TRANSPARENCY_ALPHA);
+						mat->set_alpha_antialiasing(BaseMaterial3D::ALPHA_ANTIALIASING_ALPHA_TO_COVERAGE_AND_TO_ONE);
 						mat->set_depth_draw_mode(BaseMaterial3D::DEPTH_DRAW_ALWAYS);
 					}
 				} else if (input_name == "alpha_cutoff") {
-					mat->set_transparency(StandardMaterial3D::TRANSPARENCY_ALPHA_SCISSOR);
+					mat->set_transparency(BaseMaterial3D::TRANSPARENCY_ALPHA_SCISSOR);
 					mat->set_depth_draw_mode(BaseMaterial3D::DEPTH_DRAW_ALWAYS);
 					mat->set_alpha_scissor_threshold(v);
 				} else if (input_name == "base_color") {
