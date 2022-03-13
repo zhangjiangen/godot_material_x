@@ -228,8 +228,6 @@ Error load_mtlx_document(mx::DocumentPtr p_doc, String p_path, mx::GenContext co
 }
 
 RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error *r_error, bool p_use_sub_threads, float *r_progress, CacheMode p_cache_mode) {
-	// Load source document.
-	mx::DocumentPtr doc = mx::createDocument();
 	mx::GenContext context = mx::GlslShaderGenerator::create();
 	String folder = "res://.godot/imported/" + p_path.get_file().get_basename() +
 			"-" + p_path.md5_text() + "/";
@@ -245,6 +243,8 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 	stdLib = mx::createDocument();
 	mx::StringSet xincludeFiles = mx::loadLibraries(libraryFolders, searchPath, stdLib);
 	{
+		// Load source document.
+		mx::DocumentPtr doc = mx::createDocument();
 		Error err;
 		try {
 			err = load_mtlx_document(doc, p_path, context);
@@ -362,10 +362,12 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 					Ref<Image> mtlx_image;
 					mtlx_image.instantiate();
 					err = ImageLoader::load_image(filepath, mtlx_image);
-					ERR_CONTINUE_MSG(err != OK, "Can't load embedded image.");
-					mtlx_image->generate_mipmaps();
-					tex->create_from_image(mtlx_image);
+					if (err == OK) {
+						mtlx_image->generate_mipmaps();
+						tex->create_from_image(mtlx_image);
+					}
 					if (input_name == "base_color") {
+						mat->set_feature(BaseMaterial3D::FLAG_ALBEDO_TEXTURE_FORCE_SRGB, true);
 						mat->set_texture(BaseMaterial3D::TextureParam::TEXTURE_ALBEDO, tex);
 					} else if (input_name == "metallic") {
 						if (mat->get_metallic() == 0.0f) {
@@ -384,6 +386,7 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 						mat->set_texture(BaseMaterial3D::TEXTURE_EMISSION, tex);
 					} else if (input_name == "occlusion") {
 						mat->set_texture(BaseMaterial3D::TEXTURE_AMBIENT_OCCLUSION, tex);
+						mat->set_ao_texture_channel(BaseMaterial3D::TEXTURE_CHANNEL_RED);
 					}
 					continue;
 				}
