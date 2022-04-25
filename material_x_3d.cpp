@@ -427,7 +427,7 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 					mat->set_specular(v);
 				} else if (input_name == "normal") {
 					mat->set_feature(StandardMaterial3D::FEATURE_NORMAL_MAPPING, true);
-				} else if (input_name == "emissive_color") {
+				} else if (input_name == "emissive") {
 					mat->set_feature(BaseMaterial3D::FEATURE_EMISSION, true);
 					mat->set_emission(v);
 				} else if (input_name == "alpha_mode") {
