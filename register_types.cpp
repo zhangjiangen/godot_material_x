@@ -1,6 +1,6 @@
 #include "register_types.h"
 
-#include "material_x_3d.h"
+#include "thirdparty/godot/material_x_3d.h"
 
 static Ref<MTLXLoader> resource_format_mtlx;
 
