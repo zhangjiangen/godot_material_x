@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../source/MaterialXCore/Generated.h"
+#include "MaterialXCore/Generated.h"
 
 #include "core/io/resource_loader.h"
 #include "scene/resources/material.h"
