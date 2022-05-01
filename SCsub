@@ -7,6 +7,11 @@ module_env = env.Clone()
 module_env.Prepend(CPPPATH=['source'])
 module_env.Prepend(CPPPATH=['include'])
 
+if env["platform"] == "osx":
+    module_env.Prepend(LINKFLAGS=["-framework", "OpenGL", "-framework", "Foundation"])
+    
+module_env.Append(CPPDEFINES=["GL_SILENCE_DEPRECATION"])
+
 env_thirdparty = module_env.Clone()
 env_thirdparty.disable_warnings()
 env_thirdparty.add_source_files(env.modules_sources, "source/MaterialXBake/*.cpp")
