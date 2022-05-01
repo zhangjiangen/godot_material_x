@@ -8,7 +8,6 @@ module_env.Prepend(CPPPATH=['source'])
 module_env.Prepend(CPPPATH=['include'])
 
 env_thirdparty = module_env.Clone()
-env_thirdparty.Append(CXXFLAGS=["-Wno-missing-braces"])
 env_thirdparty.disable_warnings()
 env_thirdparty.add_source_files(env.modules_sources, "source/MaterialXBake/*.cpp")
 env_thirdparty.add_source_files(env.modules_sources, "source/MaterialXCore/*.cpp")
