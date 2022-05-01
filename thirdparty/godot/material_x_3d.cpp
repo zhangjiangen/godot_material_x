@@ -249,7 +249,7 @@ RES MTLXLoader::load(const String &p_path, const String &p_original_path, Error 
 		try {
 			err = load_mtlx_document(doc, p_path, context);
 		} catch (std::exception &e) {
-			ERR_PRINT("Can't load materials.");
+            ERR_PRINT(vformat("Can't load materials. Error: %s", e.what()));
 			return RES();
 		}
 
