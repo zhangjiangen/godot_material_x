@@ -8,7 +8,7 @@ module_env.Prepend(CPPPATH=['source'])
 module_env.Prepend(CPPPATH=['include'])
 
 if env["platform"] == "osx":
-    module_env.Prepend(LINKFLAGS=["-framework", "OpenGL", "-framework", "Foundation"])
+    module_env.Prepend(LINKFLAGS=["-framework", "OpenGL", "-framework", "Foundation", "-framework", "Cocoa", "-lGLU", "-lglut"])
     
 module_env.Append(CPPDEFINES=["GL_SILENCE_DEPRECATION"])
 
