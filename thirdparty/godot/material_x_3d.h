@@ -4,7 +4,7 @@
 
 #include "core/io/resource_loader.h"
 #include "scene/resources/material.h"
-#include "editor/import/resource_importer_scene.h"
+#include "core/io/resource_loader.h"
 
 #include <MaterialXRenderGlsl/GLTextureHandler.h>
 #include <MaterialXRenderGlsl/GLUtil.h>
@@ -30,16 +30,16 @@
 #include <iostream>
 
 namespace mx = MaterialX;
-class MTLXLoader : public EditorSceneFormatImporter {
-	GDCLASS(MTLXLoader, EditorSceneFormatImporter);
+class MTLXLoader : public ResourceFormatLoader {
+	GDCLASS(MTLXLoader, ResourceFormatLoader);
 
     mx::ImageHandlerPtr imageHandler = mx::GLTextureHandler::create(mx::StbImageLoader::create());
 
   public:
-    virtual Ref<Resource> load(const String& p_path, const String& p_original_path = "", Error* r_error = nullptr, bool p_use_sub_threads = false, float* r_progress = nullptr, ResourceFormatLoader::CacheMode p_cache_mode = ResourceFormatLoader::CACHE_MODE_REUSE);
-    virtual void get_recognized_extensions(List<String>* p_extensions) const;
-    virtual bool handles_type(const String& p_type) const;
-    virtual String get_resource_type(const String& p_path) const;
+    virtual Ref<Resource> load(const String& p_path, const String& p_original_path = "", Error* r_error = nullptr, bool p_use_sub_threads = false, float* r_progress = nullptr, ResourceFormatLoader::CacheMode p_cache_mode = ResourceFormatLoader::CACHE_MODE_REUSE) override;
+    virtual void get_recognized_extensions(List<String>* p_extensions) const override;
+    virtual bool handles_type(const String& p_type) const override;
+    virtual String get_resource_type(const String& p_path) const override;
     MTLXLoader() { }
 };
 
