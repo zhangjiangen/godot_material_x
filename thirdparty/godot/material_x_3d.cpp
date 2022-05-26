@@ -569,6 +569,8 @@ Ref<Resource> MTLXLoader::load(const String& p_path, const String& p_original_pa
     config->set_value("remap", "type", "StandardMaterial3D");
     config->set_value("remap", "uid", ResourceSaver::get_resource_id_for_path(p_original_path, false));
     config->set_value("remap", "path", new_path);
+    config->set_value("deps", "source_file", p_original_path);
+    config->set_value("deps", "dest_files", new_path);
     config->save(p_original_path.get_basename() + ".import");
     ResourceSaver::save(new_path, mat);
     return mat;
