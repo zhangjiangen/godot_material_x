@@ -1,5 +1,6 @@
 #include "material_x_3d.h"
 
+#include "core/io/config_file.h"
 #include "core/config/project_settings.h"
 #include "core/io/dir_access.h"
 #include "modules/tinyexr/image_loader_tinyexr.h"
@@ -557,7 +558,20 @@ Ref<Resource> MTLXLoader::load(const String& p_path, const String& p_original_pa
     {
         *r_error = OK;
     }
-    return mat; 
+    Ref<ConfigFile> config;
+    config.instantiate();
+    String new_path = String("res://.godot/imported/") + p_original_path.get_file() + "-" + p_original_path.md5_text() + ".res";
+    if (FileAccess::exists(p_original_path.get_basename() + ".import"))
+    {
+        config->load(p_original_path.get_basename() + ".import");
+    }
+    config->set_value("remap", "uid", ResourceSaver::get_resource_id_for_path(p_original_path, true));
+    config->set_value("remap", "path", new_path);
+    config->set_value("remap", "importer", "material");
+    config->set_value("remap", "type", "StandardMaterial3D");
+    config->save(p_original_path.get_basename() + ".import");
+    ResourceSaver::save(new_path, mat);
+    return mat;
 }
 
 void MTLXLoader::get_recognized_extensions(List<String>* p_extensions) const
