@@ -277,16 +277,16 @@ Error load_mtlx_document(mx::DocumentPtr p_doc, String p_path, mx::GenContext co
 Ref<Resource> MTLXLoader::load(const String& p_path, const String& p_original_path, Error* r_error, bool p_use_sub_threads, float* r_progress, ResourceFormatLoader::CacheMode p_cache_mode)
 {
     mx::GenContext context = mx::GlslShaderGenerator::create();
-    String folder = "res://.godot/imported/" + p_path.get_file().get_basename() +
-                    "-" + p_path.md5_text() + "/";
-    String mtlx = folder + p_path.get_file().get_basename() +
-                  "-" + p_path.md5_text() + ".mtlx";
+    String folder = "res://.godot/imported/" + p_original_path.get_file().get_basename() +
+                    "-" + p_original_path.md5_text() + "/";
+    String mtlx = folder + p_original_path.get_file().get_basename() +
+                  "-" + p_original_path.md5_text() + ".mtlx";
     std::string bakeFilename = ProjectSettings::get_singleton()->globalize_path(mtlx).utf8().get_data();
     mx::FileSearchPath searchPath = getDefaultSearchPath(context);
     mx::FilePath materialFilename = ProjectSettings::get_singleton()->globalize_path(p_path).utf8().get_data();
     searchPath.append(materialFilename.getParentPath());
     mx::FilePathVec libraryFolders;
-    libraryFolders.push_back(ProjectSettings::get_singleton()->globalize_path(p_path.get_base_dir()).utf8().get_data());
+    libraryFolders.push_back(ProjectSettings::get_singleton()->globalize_path(p_original_path.get_base_dir()).utf8().get_data());
     mx::DocumentPtr stdLib;
     stdLib = mx::createDocument();
     mx::StringSet xincludeFiles = mx::loadLibraries(libraryFolders, searchPath, stdLib);
@@ -557,7 +557,7 @@ Ref<Resource> MTLXLoader::load(const String& p_path, const String& p_original_pa
     {
         *r_error = OK;
     }
-    return mat;
+    return mat; 
 }
 
 void MTLXLoader::get_recognized_extensions(List<String>* p_extensions) const
@@ -567,14 +567,10 @@ void MTLXLoader::get_recognized_extensions(List<String>* p_extensions) const
 
 bool MTLXLoader::handles_type(const String& p_type) const
 {
-    return (p_type == "StandardMaterial3D");
+    return ClassDB::is_parent_class(p_type, "StandardMaterial3D");
 }
 
 String MTLXLoader::get_resource_type(const String& p_path) const
-{
-    if (p_path.nocasecmp_to("mtlx"))
-    {
-        return "StandardMaterial3D";
-    }
-    return String();
+{   
+    return "StandardMaterial3D";
 }
