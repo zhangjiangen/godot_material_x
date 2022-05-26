@@ -2,6 +2,8 @@
 
 #include "thirdparty/godot/material_x_3d.h"
 
+#include "core/io/resource.h"
+
 static Ref<MTLXLoader> resource_format_mtlx;
 
 void initialize_material_x_module(ModuleInitializationLevel p_level)
