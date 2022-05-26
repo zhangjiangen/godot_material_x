@@ -286,7 +286,7 @@ Ref<Resource> MTLXLoader::load(const String& p_path, const String& p_original_pa
     mx::FilePath materialFilename = ProjectSettings::get_singleton()->globalize_path(p_path).utf8().get_data();
     searchPath.append(materialFilename.getParentPath());
     mx::FilePathVec libraryFolders;
-    libraryFolders.push_back(ProjectSettings::get_singleton()->globalize_path("res://libraries").utf8().get_data());
+    libraryFolders.push_back(ProjectSettings::get_singleton()->globalize_path(p_path.get_base_dir()).utf8().get_data());
     mx::DocumentPtr stdLib;
     stdLib = mx::createDocument();
     mx::StringSet xincludeFiles = mx::loadLibraries(libraryFolders, searchPath, stdLib);
