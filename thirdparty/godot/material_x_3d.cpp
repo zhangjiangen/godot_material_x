@@ -274,7 +274,7 @@ Error load_mtlx_document(mx::DocumentPtr p_doc, String p_path, mx::GenContext co
     return OK;
 }
 
-Ref<Resource> MTLXLoader::load(const String& p_path, const String& p_original_path, Error* r_error, bool p_use_sub_threads, float* r_progress, CacheMode p_cache_mode)
+Ref<Resource> MTLXLoader::load(const String& p_path, const String& p_original_path, Error* r_error, bool p_use_sub_threads, float* r_progress, ResourceFormatLoader::CacheMode p_cache_mode)
 {
     mx::GenContext context = mx::GlslShaderGenerator::create();
     String folder = "res://.godot/imported/" + p_path.get_file().get_basename() +
