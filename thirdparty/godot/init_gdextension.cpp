@@ -47,14 +47,14 @@ using namespace godot;
 
 static Ref<MTLXLoader> resource_format_mtlx;
 
-void register_webrtc_extension_types(ModuleInitializationLevel p_level) {
+void register_material_x_extension_types(ModuleInitializationLevel p_level) {
 	if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
 		return;
 	}
 	godot::ClassDB::register_class<MTLXLoader>();
 }
 
-void unregister_webrtc_extension_types(ModuleInitializationLevel p_level) {
+void unregister_material_x_extension_types(ModuleInitializationLevel p_level) {
 	if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
 		return;
 	}
@@ -62,11 +62,11 @@ void unregister_webrtc_extension_types(ModuleInitializationLevel p_level) {
 }
 
 extern "C" {
-GDNativeBool GDN_EXPORT webrtc_extension_init(const GDNativeInterface *p_interface, const GDNativeExtensionClassLibraryPtr p_library, GDNativeInitialization *r_initialization) {
+GDNativeBool GDN_EXPORT material_x_extension_init(const GDNativeInterface *p_interface, const GDNativeExtensionClassLibraryPtr p_library, GDNativeInitialization *r_initialization) {
 	GDExtensionBinding::InitObject init_obj(p_interface, p_library, r_initialization);
 
-	init_obj.register_initializer(register_webrtc_extension_types);
-	init_obj.register_terminator(unregister_webrtc_extension_types);
+	init_obj.register_initializer(register_material_x_extension_types);
+	init_obj.register_terminator(unregister_material_x_extension_types);
 	init_obj.set_minimum_library_initialization_level(MODULE_INITIALIZATION_LEVEL_SCENE);
 
 	return init_obj.init();
