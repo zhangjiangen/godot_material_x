@@ -33,6 +33,7 @@
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/core/defs.hpp>
 #include <godot_cpp/godot.hpp>
+#include <godot_cpp/classes/resource_loader.hpp>
 
 #include "material_x_3d.h"
 
@@ -43,7 +44,6 @@
 #endif
 
 using namespace godot;
-using namespace godot_webrtc;
 
 static Ref<MTLXLoader> resource_format_mtlx;
 
@@ -51,16 +51,14 @@ void register_webrtc_extension_types(ModuleInitializationLevel p_level) {
 	if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
 		return;
 	}
-    godot::ClassDB::register_class<MTLXLoader>();
-    resource_format_mtlx.instantiate();
-    ResourceLoader::add_resource_format_loader(resource_format_mtlx);
+	godot::ClassDB::register_class<MTLXLoader>();
 }
 
 void unregister_webrtc_extension_types(ModuleInitializationLevel p_level) {
 	if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
 		return;
 	}
-    resource_format_mtlx.unref();
+	resource_format_mtlx.unref();
 }
 
 extern "C" {
